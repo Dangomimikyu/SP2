@@ -136,11 +136,10 @@ void SceneText::Init()
 	meshList[GEO_TEXT]->textureID = LoadTGA("Image//calibri.tga");
 	// end init objects ======================================================================================================
 	// init NPCs =============================================================================================================
-	meshList[GEO_AXES] = MeshBuilder::GenerateOBJ("NPC", "obj//gary.obj");
-	NPCs[GEO_AXES].set_transformation('t', Vector3(2, 0, 2));
-	NPCs[GEO_AXES].set_transformation(45.f, Vector3(1, 0, 0));
-	NPCs[GEO_AXES].set_transformation('s', Vector3(2, 2, 2));
-	RenderGary(NPCs[GEO_AXES]);
+	meshList[NPC_GARY] = MeshBuilder::GenerateOBJ("NPC", "obj//gary.obj");
+	NPCs[NPC_GARY].set_transformation('t', Vector3(0, 0, 0));
+	NPCs[NPC_GARY].set_transformation(0.f, Vector3(1, 0, 0));
+	NPCs[NPC_GARY].set_transformation('s', Vector3(0.8f, 0.8f, 0.8f));
 	// end init NPCs =========================================================================================================
 }
 
@@ -190,17 +189,40 @@ void SceneText::Update(double dt)
 		//to do: switch light type to SPOT and pass the information to
 		light[0].type = Light::LIGHT_SPOT;
 	}
-
-	for (int i = 0; i < NUM_NPC; ++i) {
-		if (NPCs[i].get_transformation().translation != NPCs[i].get_walk()) {
-			float distance = sqrt(pow(NPCs[i].get_transformation().translation.x - NPCs[i].get_walk().x, 2) + pow(NPCs[i].get_transformation().translation.z - NPCs[i].get_walk().z, 2));
-			float dist_part = distance / 5;
-			NPCs[i].set_transformation('t', dist_part * NPCs[i].get_transformation().translation.x);
-			NPCs[i].set_transformation('t', dist_part * NPCs[i].get_transformation().translation.z);
+	// NPC ========================================================================================================================
+	if (NPCs[NPC_GARY].activity(false) == 0) { // activity 0 - talking
+		static float time_elapsed = 0;
+		time_elapsed += (float)(dt * 10);
+		if (time_elapsed > 50) {
+			NPCs[NPC_GARY].set_idle();
+			time_elapsed = 0;
 		}
 	}
+	for (int i = 0; i < NUM_NPC; ++i) {
+		if (NPCs[i].get_transformation().translation != NPCs[i].get_walk() && NPCs[i].activity(false) == 1) { // activity 1 - walking
+			Vector3 distance = NPCs[i].get_walk() - NPCs[i].get_transformation().translation;
+			//NPCs[i].set_transformation('t', Vector3(NPCs[i].get_transformation().translation.x + (float)(dt * 30), 0, NPCs[i].get_transformation().translation.z + (float)(dt * 30)));
+			NPCs[i].set_transformation('t', Vector3(NPCs[i].get_transformation().translation.x + distance.x, 0, NPCs[i].get_transformation().translation.z +distance.z));
+		}
+	}
+	if (Application::IsKeyPressed('G')) {
+		NPCs[NPC_GARY].set_transformation('t', Vector3(0, 0, NPCs[NPC_GARY].get_transformation().translation.z + (float)(dt * 30)));
+		std::cout << NPCs[NPC_GARY].get_transformation().translation.z << std::endl;
+	}
 
-
+	if (NPCs[NPC_GARY].get_transformation().translation == NPCs[NPC_GARY].get_walk()) {
+		static float time_elapsed = 0;
+		time_elapsed += (float)(dt * 10);
+		std::cout << "time elapsed: " << time_elapsed << std::endl;
+		std::cout << "going to x = " << NPCs[NPC_GARY].get_walk().x;
+		std::cout << "going to z = " << NPCs[NPC_GARY].get_walk().z;
+		if (time_elapsed > 5) {
+		NPCs[NPC_GARY].set_idle();
+		time_elapsed = 0;
+		}
+	}
+	// end NPC =====================================================================================================================
+	
 	camera.Update(dt);
 }
 
@@ -255,14 +277,7 @@ void SceneText::Render()
 	// dice end
 
 	// gary
-	NPC NPC;
-	transform NPC_transform;
-	if (NPC_transform.translation == NPC.get_walk()) {
-		NPC.set_idle();
-	}
-	RenderGary(NPC, NPC_transform);
-
-	if (NPCs[NPC_GARY].get_transformation().translation == NPCs[NPC_GARY].get_walk())
+	RenderGary(NPCs[NPC_GARY]);
 	// gary end
 
 	// world text
@@ -377,21 +392,10 @@ void SceneText::RenderMesh(Mesh* mesh, transform object, bool enableLight)
 	if (mesh->textureID > 0) glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void SceneText::RenderGary(NPC NPC, transform NPC_transform)
-{
-	NPC_transform.translation = Vector3(NPC.get_walk().x, NPC.get_walk().y, NPC.get_walk().z);
-	NPC_transform.rotateAngle = 0;
-	NPC_transform.rotation = Vector3(1, 0, 0);
-	NPC_transform.scaling = Vector3(1, 1, 1);
-	modelStack.PushMatrix();
-	RenderMesh(meshList[GEO_AXES], NPC_transform, true);
-	modelStack.PopMatrix();
-}
-
 void SceneText::RenderGary(NPC NPC)
 {
 	modelStack.PushMatrix();
-	RenderMesh(meshList[GEO_AXES], NPC.get_transformation() , true);
+	RenderMesh(meshList[NPC_GARY], NPC.get_transformation(), true);
 	modelStack.PopMatrix();
 }
 
