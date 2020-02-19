@@ -41,12 +41,6 @@ float Cenvironment::getoverlap() const
 	return overlap;
 }
 
-void Cenvironment::setPosition(float x, float z)
-{
-	this->position.x = x;
-	this->position.z = z;
-}
-
 void Cenvironment::set_transformationR(float angle, Vector3 vector)
 {
 	transformations.rotateAngle = angle;
