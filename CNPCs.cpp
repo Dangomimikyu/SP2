@@ -4,15 +4,20 @@
 NPC::NPC() : name("bob"), idle(true)
 {
 	std::cout << "N E W  N P C"; // testing
+	srand(time(0));
+	activity();
 }
 
-int NPC::doing(void)
+int NPC::activity(bool player)
 {
-	int event = 0;
-	srand(time(0));
+	int activity_number = 0;
+	if (player) {
+		activity_number = 99;
+		// insert code for player interaction
+	}
 	if (idle) {
-		event = rand() % 2;
-		switch (event) {
+		activity_number = rand() % 3;
+		switch (activity_number) {
 		case 0: // npc is talking to another NPC
 			std::cout << "talking";
 			idle = false;
@@ -24,9 +29,12 @@ int NPC::doing(void)
 			std::cout << "going to: " << walk_destination.x << ", " << walk_destination.z;
 			idle = false;
 			break;
+		case 2: // npc wants to play arcade game
+			int cabinet = rand() % 3;
+			// go to cabinet location
 		}
 	}
-	return event;
+	return activity_number;
 }
 
 Vector3 NPC::get_walk(void) const
@@ -62,5 +70,7 @@ void NPC::set_transformation(char type, Vector3 vector)
 }
 void NPC::set_idle(void)
 {
+	std::cout << "setting idle as: " << idle << std::endl;
 	idle = !idle;
+	activity(false);
 }
