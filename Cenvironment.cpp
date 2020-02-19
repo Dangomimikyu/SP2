@@ -1,18 +1,19 @@
 #include "Cenvironment.h"
 
-Cenvironment::Cenvironment() : collided(false), distance(0), radius(0), overlap(0), positionX(0), positionZ(0)
+Cenvironment::Cenvironment() : collided(false), distance(0), radius(0), overlap(0)
 {
-	
+
 }
 
 Cenvironment::~Cenvironment()
 {
 }
 
-void Cenvironment::collision(player p, float r)
+void Cenvironment::roundCollision(player p, float r) 
 {
 	radius = r;
-	distance = sqrt(pow(position.x - p.position.x, 2) + pow(position.z - p.position.z, 2));
+	//pythagoras theorem to find the length//
+	distance = sqrt(pow(this->getTransformation().translation.x - p.position.x, 2) + pow(this->getTransformation().translation.z - p.position.z, 2) );
 	if (distance >= r + p.radius)
 	{
 		collided = false;
@@ -25,33 +26,48 @@ void Cenvironment::collision(player p, float r)
 	}
 }
 
-bool Cenvironment::getcollide()
+bool Cenvironment::getcollide() const
 {
 	return collided;
 }
 
-float Cenvironment::getDistance()
+float Cenvironment::getDistance() const
 {
 	return distance;
 }
 
-float Cenvironment::getoverlap()
+float Cenvironment::getoverlap() const
 {
 	return overlap;
 }
 
-void Cenvironment::setPosition(float x , float z)
+void Cenvironment::setPosition(float x, float z)
 {
 	this->position.x = x;
 	this->position.z = z;
 }
 
-float Cenvironment::getPositionX()
+void Cenvironment::set_transformationR(float angle, Vector3 vector)
 {
-	return position.x;
+	transformations.rotateAngle = angle;
+	transformations.rotation = vector;
 }
 
-float Cenvironment::getPositionZ()
+void Cenvironment::set_transformation(char type, Vector3 vector)
 {
-	return position.z;
+	if (type == 't') { // translate
+		transformations.translation = vector;
+	}
+	else if (type == 's') { // scale
+		transformations.scaling = vector;
+	}
+	else {
+		throw ("you entered something that is not translate or scale");
+	}
+}
+
+transform Cenvironment::getTransformation(void) const
+{
+	return transformations;
+
 }
