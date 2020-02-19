@@ -4,8 +4,9 @@
 #include <Vector3.h>
 #include "Vertex.h"
 #include <transformation.h>
+#include "Cenvironment.h"
 
-class NPC {
+class NPC : public Cenvironment {
 private:
 	std::string name;
 	bool idle;
