@@ -1,7 +1,8 @@
-#ifndef CENV_H
-#define CENV_H
+#pragma once
 #include "player.h"
 #include "Vertex.h"
+#include <Vector3.h>
+#include <transformation.h>
 class Cenvironment
 {
 private:
@@ -9,18 +10,19 @@ private:
 	float distance;
 	float radius;
 	float overlap;
-	float positionX;
-	float positionZ;
 	Position position;
+	transform transformations;
 public:
 	Cenvironment();
 	~Cenvironment();
-	virtual void collision(player, float);
-	bool getcollide();
-	float getDistance();
-	float getoverlap();
+	bool getcollide() const;
+	float getDistance() const;
+	float getoverlap() const;
+	transform getTransformation(void) const;
+
 	void setPosition(float, float);
-	float getPositionX();
-	float getPositionZ();
+	void set_transformationR(float angle, Vector3 vector);//rotation
+	void set_transformation(char type, Vector3 vector);
+	virtual void roundCollision(player, float);
 };
-#endif // ! CENV_H
+
