@@ -8,14 +8,13 @@
 class NPC {
 private:
 	std::string name;
-	std::string activity;
 	bool idle;
 	Vector3 walk_destination;
 	transform transformations;
 public:
 	NPC();
 
-	int doing(void);
+	int activity(bool player);
 
 	Vector3 get_walk(void) const;
 	bool get_idle(void) const;
