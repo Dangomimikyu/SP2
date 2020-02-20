@@ -139,7 +139,7 @@ void SceneText::Init()
 	meshList[NPC_GARY] = MeshBuilder::GenerateOBJ("NPC", "obj//gary.obj");
 	NPCs[NPC_GARY].set_transformation('t', Vector3(0, 0, 0));
 	NPCs[NPC_GARY].set_transformation(0.f, Vector3(1, 0, 0));
-	NPCs[NPC_GARY].set_transformation('s', Vector3(0.8f, 0.8f, 0.8f));
+	NPCs[NPC_GARY].set_transformation('s', Vector3(0.8f, 0.8f, 0.8f));	
 	// end init NPCs =========================================================================================================
 }
 
@@ -202,7 +202,7 @@ void SceneText::Update(double dt)
 		if (NPCs[i].get_transformation().translation != NPCs[i].get_walk() && NPCs[i].activity(false) == 1) { // activity 1 - walking
 			Vector3 distance = NPCs[i].get_walk() - NPCs[i].get_transformation().translation;
 			//NPCs[i].set_transformation('t', Vector3(NPCs[i].get_transformation().translation.x + (float)(dt * 30), 0, NPCs[i].get_transformation().translation.z + (float)(dt * 30)));
-			NPCs[i].set_transformation('t', Vector3(NPCs[i].get_transformation().translation.x + distance.x, 0, NPCs[i].get_transformation().translation.z +distance.z));
+			NPCs[i].set_transformation('t', Vector3((NPCs[i].get_transformation().translation.x * distance.Normalized().x + (float)(dt * 30)), 0, (NPCs[i].get_transformation().translation.z * distance.Normalized().z)) + (float)(dt * 30));
 		}
 	}
 	if (Application::IsKeyPressed('G')) {
