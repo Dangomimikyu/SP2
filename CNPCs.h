@@ -10,14 +10,16 @@ class NPC : public Cenvironment {
 private:
 	std::string name;
 	bool idle;
+	int activity_number;
 	Vector3 walk_destination;
 public:
 	NPC();
 
-	int activity(bool player);
+	void activity(bool player);
 
 	Vector3 get_walk(void) const;
 	bool get_idle(void) const;
+	int get_activity(void) const;
 
 	void set_idle(void);
 };
