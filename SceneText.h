@@ -8,6 +8,7 @@
 #include "Mesh.h"
 #include "Light.h"
 #include "CNPCs.h"
+#include "Cenvironment.h"
 #include <iostream>
 
 class SceneText : public Scene
@@ -75,7 +76,7 @@ private:
 
 	MS modelStack, viewStack, projectionStack;
 	Light light[1];
-	std::cout << "LIGHT";
+	Cenvironment envObjects[5];
 	NPC NPCs[1];
 
 	Camera2 camera;
@@ -83,7 +84,7 @@ private:
 	void RenderMesh(Mesh* mesh, bool enableLight);
 	void RenderMesh(Mesh* mesh, transform object, bool enableLight);
 	void RenderGary(NPC NPC, transform NPC_transform);
-	void RenderGary(NPC NPC);
+	void RenderGary(NPC npc);
 	void RenderSkybox();
 	std::string print_fps();
 
