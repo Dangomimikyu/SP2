@@ -9,20 +9,32 @@ Cenvironment::~Cenvironment()
 {
 }
 
-void Cenvironment::roundCollision(player p, float r) 
+Cenvironment* Cenvironment::get_instance()
+{
+	if (!myObject) {
+		myObject = new Cenvironment();
+		return myObject;
+	}
+	else {
+		return myObject;
+	}
+}
+Cenvironment* Cenvironment::myObject = 0;
+void Cenvironment::roundCollision(Cenvironment& object, float r)
 {
 	radius = r;
-	//pythagoras theorem to find the length//
-	distance = sqrt(pow(this->getTransformation().translation.x - p.position.x, 2) + pow(this->getTransformation().translation.z - p.position.z, 2) );
-	if (distance >= r + p.radius)
+	/// pythagoras' theorem to find the length
+	//distance = sqrt(pow(this->get_transformation().translation.x - object.position.x, 2) + pow(this->get_transformation().translation.z - object.position.z, 2));
+	distance = sqrt(pow(this->get_transformation().translation.x - get_instance()->get_transformation().translation.x, 2) + pow(this->get_transformation().translation.z - get_instance()->get_transformation().translation.z, 2));
+	if (distance >= r + get_instance()->radius)
 	{
 		collided = false;
 	}
-	else if (distance < r + p.radius)
+	else if (distance < r + get_instance()->radius)
 	{
 		collided = true;
 		//overlap = /*0.5 **/ (distance - p.radius - r);
-		overlap = (p.radius + r) - distance;
+		overlap = (get_instance()->radius + r) - distance;
 	}
 }
 
@@ -41,7 +53,7 @@ float Cenvironment::getoverlap() const
 	return overlap;
 }
 
-void Cenvironment::set_transformationR(float angle, Vector3 vector)
+void Cenvironment::set_transformation(float angle, Vector3 vector)
 {
 	transformations.rotateAngle = angle;
 	transformations.rotation = vector;
@@ -60,7 +72,7 @@ void Cenvironment::set_transformation(char type, Vector3 vector)
 	}
 }
 
-transform Cenvironment::getTransformation(void) const
+transform Cenvironment::get_transformation(void) const
 {
 	return transformations;
 
