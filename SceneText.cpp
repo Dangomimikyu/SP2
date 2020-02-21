@@ -1,13 +1,18 @@
 #include "SceneText.h"
 #include "GL\glew.h"
+#include "shader.hpp"
 #include "Application.h"
 #include <Mtx44.h>
-#include "shader.hpp"
+#include <Transformation.h>
 #include "MeshBuilder.h"
 #include "Utility.h"
 #include "LoadTGA.h"
 #include "CNPCs.h"
-#include <Transformation.h>
+#include "SceneMG1.h"
+#include "SceneMG2.h"
+#include "SceneMG3.h"
+
+//backup 8
 
 #define ROT_LIMIT 45.f;
 #define SCALE_LIMIT 5.f;
@@ -54,19 +59,7 @@ void SceneText::Init()
 	m_parameters[U_MATERIAL_DIFFUSE] = glGetUniformLocation(m_programID, "material.kDiffuse");
 	m_parameters[U_MATERIAL_SPECULAR] = glGetUniformLocation(m_programID, "material.kSpecular");
 	m_parameters[U_MATERIAL_SHININESS] = glGetUniformLocation(m_programID, "material.kShininess");
-	m_parameters[U_LIGHT0_POSITION] = glGetUniformLocation(m_programID, "lights[0].position_cameraspace");
-	m_parameters[U_LIGHT0_COLOR] = glGetUniformLocation(m_programID, "lights[0].color");
-	m_parameters[U_LIGHT0_POWER] = glGetUniformLocation(m_programID, "lights[0].power");
-	m_parameters[U_LIGHT0_KC] = glGetUniformLocation(m_programID, "lights[0].kC");
-	m_parameters[U_LIGHT0_KL] = glGetUniformLocation(m_programID, "lights[0].kL");
-	m_parameters[U_LIGHT0_KQ] = glGetUniformLocation(m_programID, "lights[0].kQ");
-	m_parameters[U_LIGHTENABLED] = glGetUniformLocation(m_programID, "lightEnabled");
-	m_parameters[U_NUMLIGHTS] = glGetUniformLocation(m_programID, "numLights");
-	m_parameters[U_LIGHT0_TYPE] = glGetUniformLocation(m_programID, "lights[0].type");
-	m_parameters[U_LIGHT0_SPOTDIRECTION] = glGetUniformLocation(m_programID, "lights[0].spotDirection");
-	m_parameters[U_LIGHT0_COSCUTOFF] = glGetUniformLocation(m_programID, "lights[0].cosCutoff");
-	m_parameters[U_LIGHT0_COSINNER] = glGetUniformLocation(m_programID, "lights[0].cosInner");
-	m_parameters[U_LIGHT0_EXPONENT] = glGetUniformLocation(m_programID, "lights[0].exponent");
+
 
 	//Get a handle for our "colorTexture" uniform
 	m_parameters[U_COLOR_TEXTURE_ENABLED] = glGetUniformLocation(m_programID, "colorTextureEnabled");
@@ -75,54 +68,16 @@ void SceneText::Init()
 	m_parameters[U_TEXT_ENABLED] = glGetUniformLocation(m_programID, "textEnabled");
 	m_parameters[U_TEXT_COLOR] = glGetUniformLocation(m_programID, "textColor");
 
-
 	glUseProgram(m_programID);
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
 
-	light[0].type = Light::LIGHT_POINT;
-	light[0].position.Set(0, 5, 0);
-	light[0].color.Set(0.5f, 0.5f, 0.5f);
-	light[0].power = 1;
-	light[0].kC = 1.f;
-	light[0].kL = 0.01f;
-	light[0].kQ = 0.001f;
-	light[0].cosCutoff = cos(Math::DegreeToRadian(45));
-	light[0].cosInner = cos(Math::DegreeToRadian(30));
-	light[0].exponent = 3.f;
-	light[0].spotDirection.Set(0.f, 1.f, 0.f);
+	// lights
+	InitLights();
 
-	glUniform1i(m_parameters[U_LIGHT0_TYPE], light[0].type);
-	glUniform3fv(m_parameters[U_LIGHT0_COLOR], 1, &light[0].color.r);
-	glUniform1f(m_parameters[U_LIGHT0_POWER], light[0].power);
-	glUniform1f(m_parameters[U_LIGHT0_KC], light[0].kC);
-	glUniform1f(m_parameters[U_LIGHT0_KL], light[0].kL);
-	glUniform1f(m_parameters[U_LIGHT0_KQ], light[0].kQ);
-	glUniform3fv(m_parameters[U_LIGHT0_SPOTDIRECTION], 1, &light[0].spotDirection.x);
-	glUniform1f(m_parameters[U_LIGHT0_COSCUTOFF], light[0].cosCutoff);
-	glUniform1f(m_parameters[U_LIGHT0_COSINNER], light[0].cosInner);
-	glUniform1f(m_parameters[U_LIGHT0_EXPONENT], light[0].exponent);
-	glUniform1i(m_parameters[U_NUMLIGHTS], 1); 
+	// skybox
+	InitSkybox();
 
-	// init skybox ==============================================================================================================
-	meshList[GEO_LEFT] = MeshBuilder::GenerateQuad("left", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_LEFT]->textureID = LoadTGA("Image//left.tga");
-
-	meshList[GEO_RIGHT] = MeshBuilder::GenerateQuad("right", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_RIGHT]->textureID = LoadTGA("Image//right.tga");
-
-	meshList[GEO_TOP] = MeshBuilder::GenerateQuad("top", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_TOP]->textureID = LoadTGA("Image//top.tga");
-
-	meshList[GEO_BOTTOM] = MeshBuilder::GenerateQuad("bottom", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_BOTTOM]->textureID = LoadTGA("Image//bottom.tga");
-
-	meshList[GEO_FRONT] = MeshBuilder::GenerateQuad("front", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_FRONT]->textureID = LoadTGA("Image//front.tga");
-
-	meshList[GEO_BACK] = MeshBuilder::GenerateQuad("back", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_BACK]->textureID = LoadTGA("Image//back.tga");
-	// end init skybox =========================================================================================================
 	// init objects ============================================================================================================
 	meshList[GEO_CHAR] = MeshBuilder::GenerateQuad("char", Color(1, 1, 1), 1.f, 1.f);
 	meshList[GEO_CHAR]->textureID = LoadTGA("Image//char.tga");
@@ -135,12 +90,7 @@ void SceneText::Init()
 	meshList[GEO_TEXT] = MeshBuilder::GenerateText("text", 16, 16);
 	meshList[GEO_TEXT]->textureID = LoadTGA("Image//calibri.tga");
 	// end init objects ======================================================================================================
-	// init NPCs =============================================================================================================
-	meshList[NPC_GARY] = MeshBuilder::GenerateOBJ("NPC", "obj//gary.obj");
-	NPCs[NPC_GARY].set_transformation('t', Vector3(0, 0, 0));
-	NPCs[NPC_GARY].set_transformation(0.f, Vector3(1, 0, 0));
-	NPCs[NPC_GARY].set_transformation('s', Vector3(0.8f, 0.8f, 0.8f));	
-	// end init NPCs =========================================================================================================
+	InitNPCs();
 }
 
 void SceneText::Update(double dt)
@@ -189,35 +139,45 @@ void SceneText::Update(double dt)
 		//to do: switch light type to SPOT and pass the information to
 		light[0].type = Light::LIGHT_SPOT;
 	}
-	// NPC ========================================================================================================================
-	if (NPCs[NPC_GARY].activity(false) == 0) { // activity 0 - talking
-		static float time_elapsed = 0;
-		time_elapsed += (float)(dt * 10);
-		if (time_elapsed > 50) {
-			NPCs[NPC_GARY].set_idle();
-			time_elapsed = 0;
-		}
+	if (Application::IsKeyPressed('1')) {
+		
 	}
+	else if (Application::IsKeyPressed('2')) {
+	
+	}
+	else if (Application::IsKeyPressed('3')) {
+
+	}
+	// NPC ========================================================================================================================
 	for (int i = 0; i < NUM_NPC; ++i) {
-		if (NPCs[i].get_transformation().translation != NPCs[i].get_walk() && NPCs[i].activity(false) == 1) { // activity 1 - walking
-			Vector3 distance = NPCs[i].get_walk() - NPCs[i].get_transformation().translation;
-			//NPCs[i].set_transformation('t', Vector3(NPCs[i].get_transformation().translation.x + (float)(dt * 30), 0, NPCs[i].get_transformation().translation.z + (float)(dt * 30)));
-			NPCs[i].set_transformation('t', Vector3((NPCs[i].get_transformation().translation.x * distance.Normalized().x + (float)(dt * 30)), 0, (NPCs[i].get_transformation().translation.z * distance.Normalized().z)) + (float)(dt * 30));
+		if (static_cast<NPC*>(NPCs[i])->get_activity() == 0) { // activity 0 - talking
+			static float time_elapsed = 0;
+			time_elapsed += (float)(dt * 10);
+			if (time_elapsed > 20) {
+				static_cast<NPC*>(NPCs[i])->set_idle();
+				time_elapsed = 0;
+			}
+		}
+		else if (static_cast<NPC*>(NPCs[i])->get_activity() == 1) {
+			if (NPCs[i]->get_transformation().translation != static_cast<NPC*>(NPCs[i])->get_walk()) { // activity 1 - walking
+				Vector3 distance = static_cast<NPC*>(NPCs[i])->get_walk() - static_cast<NPC*>(NPCs[i])->get_transformation().translation;
+				NPCs[i]->set_transformation('t', Vector3((/*NPCs[i]->get_transformation().translation.x*/static_cast<NPC*>(NPCs[i])->get_walk().x), 0, (static_cast<NPC*>(NPCs[i])->get_walk().z)));
+			}
 		}
 	}
 	if (Application::IsKeyPressed('G')) {
-		NPCs[NPC_GARY].set_transformation('t', Vector3(0, 0, NPCs[NPC_GARY].get_transformation().translation.z + (float)(dt * 30)));
-		std::cout << NPCs[NPC_GARY].get_transformation().translation.z << std::endl;
+		NPCs[NPC_BOB]->set_transformation('t', Vector3(0, 0, NPCs[NPC_BOB]->get_transformation().translation.z + (float)(dt * 30)));
+		std::cout << NPCs[NPC_BOB]->get_transformation().translation.z << std::endl;
 	}
 
-	if (NPCs[NPC_GARY].get_transformation().translation == NPCs[NPC_GARY].get_walk()) {
+	if (static_cast<NPC*>(NPCs[NPC_BOB])->get_transformation().translation == static_cast<NPC*>(NPCs[NPC_BOB])->get_walk()) {
 		static float time_elapsed = 0;
 		time_elapsed += (float)(dt * 10);
 		std::cout << "time elapsed: " << time_elapsed << std::endl;
-		std::cout << "going to x = " << NPCs[NPC_GARY].get_walk().x;
-		std::cout << "going to z = " << NPCs[NPC_GARY].get_walk().z;
+		std::cout << "going to x = " << static_cast<NPC*>(NPCs[NPC_BOB])->get_walk().x;
+		std::cout << "going to z = " << static_cast<NPC*>(NPCs[NPC_BOB])->get_walk().z;
 		if (time_elapsed > 5) {
-		NPCs[NPC_GARY].set_idle();
+		static_cast<NPC*>(NPCs[NPC_BOB])->set_idle();
 		time_elapsed = 0;
 		}
 	}
@@ -277,7 +237,7 @@ void SceneText::Render()
 	// dice end
 
 	// gary
-	RenderGary(NPCs[NPC_GARY]);
+	RenderNPC(static_cast<NPC*>(NPCs[NPC_BOB]));
 	// gary end
 
 	// world text
@@ -303,6 +263,83 @@ void SceneText::Exit()
 	glDeleteVertexArrays(1, &m_vertexArrayID);
 	glDeleteProgram(m_programID);
 
+}
+
+void SceneText::InitSkybox()
+{
+	meshList[GEO_LEFT] = MeshBuilder::GenerateQuad("left", Color(1, 1, 1), 1.f, 1.f);
+	meshList[GEO_LEFT]->textureID = LoadTGA("Image//left.tga");
+
+	meshList[GEO_RIGHT] = MeshBuilder::GenerateQuad("right", Color(1, 1, 1), 1.f, 1.f);
+	meshList[GEO_RIGHT]->textureID = LoadTGA("Image//right.tga");
+
+	meshList[GEO_TOP] = MeshBuilder::GenerateQuad("top", Color(1, 1, 1), 1.f, 1.f);
+	meshList[GEO_TOP]->textureID = LoadTGA("Image//top.tga");
+
+	meshList[GEO_BOTTOM] = MeshBuilder::GenerateQuad("bottom", Color(1, 1, 1), 1.f, 1.f);
+	meshList[GEO_BOTTOM]->textureID = LoadTGA("Image//bottom.tga");
+
+	meshList[GEO_FRONT] = MeshBuilder::GenerateQuad("front", Color(1, 1, 1), 1.f, 1.f);
+	meshList[GEO_FRONT]->textureID = LoadTGA("Image//front.tga");
+
+	meshList[GEO_BACK] = MeshBuilder::GenerateQuad("back", Color(1, 1, 1), 1.f, 1.f);
+	meshList[GEO_BACK]->textureID = LoadTGA("Image//back.tga");
+}
+
+void SceneText::InitLights()
+{
+	m_parameters[U_LIGHT0_POSITION] = glGetUniformLocation(m_programID, "lights[0].position_cameraspace");
+	m_parameters[U_LIGHT0_COLOR] = glGetUniformLocation(m_programID, "lights[0].color");
+	m_parameters[U_LIGHT0_POWER] = glGetUniformLocation(m_programID, "lights[0].power");
+	m_parameters[U_LIGHT0_KC] = glGetUniformLocation(m_programID, "lights[0].kC");
+	m_parameters[U_LIGHT0_KL] = glGetUniformLocation(m_programID, "lights[0].kL");
+	m_parameters[U_LIGHT0_KQ] = glGetUniformLocation(m_programID, "lights[0].kQ");
+	m_parameters[U_LIGHTENABLED] = glGetUniformLocation(m_programID, "lightEnabled");
+	m_parameters[U_NUMLIGHTS] = glGetUniformLocation(m_programID, "numLights");
+	m_parameters[U_LIGHT0_TYPE] = glGetUniformLocation(m_programID, "lights[0].type");
+	m_parameters[U_LIGHT0_SPOTDIRECTION] = glGetUniformLocation(m_programID, "lights[0].spotDirection");
+	m_parameters[U_LIGHT0_COSCUTOFF] = glGetUniformLocation(m_programID, "lights[0].cosCutoff");
+	m_parameters[U_LIGHT0_COSINNER] = glGetUniformLocation(m_programID, "lights[0].cosInner");
+	m_parameters[U_LIGHT0_EXPONENT] = glGetUniformLocation(m_programID, "lights[0].exponent");
+
+	light[0].type = Light::LIGHT_POINT;
+	light[0].position.Set(0, 5, 0);
+	light[0].color.Set(0.5f, 0.5f, 0.5f);
+	light[0].power = 1;
+	light[0].kC = 1.f;
+	light[0].kL = 0.01f;
+	light[0].kQ = 0.001f;
+	light[0].cosCutoff = cos(Math::DegreeToRadian(45));
+	light[0].cosInner = cos(Math::DegreeToRadian(30));
+	light[0].exponent = 3.f;
+	light[0].spotDirection.Set(0.f, 1.f, 0.f);
+
+	glUniform1i(m_parameters[U_LIGHT0_TYPE], light[0].type);
+	glUniform3fv(m_parameters[U_LIGHT0_COLOR], 1, &light[0].color.r);
+	glUniform1f(m_parameters[U_LIGHT0_POWER], light[0].power);
+	glUniform1f(m_parameters[U_LIGHT0_KC], light[0].kC);
+	glUniform1f(m_parameters[U_LIGHT0_KL], light[0].kL);
+	glUniform1f(m_parameters[U_LIGHT0_KQ], light[0].kQ);
+	glUniform3fv(m_parameters[U_LIGHT0_SPOTDIRECTION], 1, &light[0].spotDirection.x);
+	glUniform1f(m_parameters[U_LIGHT0_COSCUTOFF], light[0].cosCutoff);
+	glUniform1f(m_parameters[U_LIGHT0_COSINNER], light[0].cosInner);
+	glUniform1f(m_parameters[U_LIGHT0_EXPONENT], light[0].exponent);
+	glUniform1i(m_parameters[U_NUMLIGHTS], 1);
+}
+
+void SceneText::InitNPCs()
+{
+	NPCs[NPC_BOB] = new NPC();
+
+	// gary
+	meshList[NPC_BOB] = MeshBuilder::GenerateOBJ("NPC", "obj//gary.obj");
+	meshList[NPC_BOB]->material.kAmbient.Set(1, 1, 1);
+	meshList[NPC_BOB]->material.kDiffuse.Set(1, 1, 1);
+	meshList[NPC_BOB]->material.kSpecular.Set(1, 1, 1);
+	meshList[NPC_BOB]->material.kShininess = 0.6f;
+	NPCs[NPC_BOB]->set_transformation('t', Vector3(0, 0, 0));
+	NPCs[NPC_BOB]->set_transformation(0.f, Vector3(1, 0, 0));
+	NPCs[NPC_BOB]->set_transformation('s', Vector3(0.8f, 0.8f, 0.8f));
 }
 
 void SceneText::RenderMesh(Mesh* mesh, bool enableLight)
@@ -392,10 +429,17 @@ void SceneText::RenderMesh(Mesh* mesh, transform object, bool enableLight)
 	if (mesh->textureID > 0) glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void SceneText::RenderGary(NPC NPC)
+void SceneText::RenderObject(Cenvironment object)
 {
 	modelStack.PushMatrix();
-	RenderMesh(meshList[NPC_GARY], NPC.get_transformation(), true);
+	//RenderMesh(meshList[INSERT_OBJ_NAME], object.get_transformation(), true);
+	modelStack.PopMatrix();
+}
+
+void SceneText::RenderNPC(NPC* NPC)
+{
+	modelStack.PushMatrix();
+	RenderMesh(meshList[NPC_BOB], NPC->get_transformation(), true);
 	modelStack.PopMatrix();
 }
 
