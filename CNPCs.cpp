@@ -1,16 +1,15 @@
 #include "CNPCs.h"
 #include <ctime>
 
-NPC::NPC() : name("bob"), idle(true)
+NPC::NPC() : name("bob"), idle(true), activity_number(-1)
 {
-	std::cout << "N E W  N P C"; // testing
+	std::cout << "!new npc!"; // testing
 	srand(time(0));
 	activity(false);
 }
 
-int NPC::activity(bool player)
+void NPC::activity(bool player)
 {
-	int activity_number = 0;
 	if (player) {
 		activity_number = 99;
 		// insert code for player interaction
@@ -23,9 +22,9 @@ int NPC::activity(bool player)
 			idle = false;
 			break;
 		case 1: // npc is walking somewhere
-			walk_destination.x = rand() % 10;
+			walk_destination.x = rand() % 50;
 			walk_destination.y = 0;
-			walk_destination.z = rand() % 10;
+			walk_destination.z = rand() % 50;
 			std::cout << "going to: " << walk_destination.x << ", " << walk_destination.z << std::endl;
 			idle = false;
 			break;
@@ -34,7 +33,6 @@ int NPC::activity(bool player)
 			// go to cabinet location
 		}
 	}
-	return activity_number;
 }
 
 Vector3 NPC::get_walk(void) const
@@ -45,6 +43,11 @@ Vector3 NPC::get_walk(void) const
 bool NPC::get_idle(void) const
 {
 	return idle;
+}
+
+int NPC::get_activity(void) const
+{
+	return activity_number;
 }
 
 void NPC::set_idle(void)
