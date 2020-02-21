@@ -31,8 +31,14 @@ class SceneText : public Scene
 
 	enum NPCs 
 	{
-		NPC_GARY = 0,
+		NPC_BOB = 0,
 		NUM_NPC
+	};
+
+	enum environment
+	{
+		DICE = 0,
+		NUM_ENV
 	};
 
 	enum Scene5_UNIFORM_TYPE
@@ -76,15 +82,19 @@ private:
 
 	MS modelStack, viewStack, projectionStack;
 	Light light[1];
-	Cenvironment envObjects[5];
-	NPC NPCs[1];
+	Cenvironment envObjects[1];
+	Cenvironment* NPCs[1];
 
 	Camera2 camera;
 	
+	void InitSkybox();
+	void InitLights();
+	void InitNPCs();
+
 	void RenderMesh(Mesh* mesh, bool enableLight);
 	void RenderMesh(Mesh* mesh, transform object, bool enableLight);
-	void RenderGary(NPC NPC, transform NPC_transform);
-	void RenderGary(NPC npc);
+	void RenderObject(Cenvironment object);
+	void RenderNPC(NPC* npc);
 	void RenderSkybox();
 	std::string print_fps();
 
