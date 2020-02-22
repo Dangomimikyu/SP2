@@ -3,13 +3,12 @@
 
 #include "Scene.h"
 #include <MatrixStack.h>
-#include <transformation.h>
 #include "Camera2.h"
 #include "Mesh.h"
 #include "Light.h"
+#include <transformation.h>
 #include "CNPCs.h"
-#include "Cenvironment.h"
-#include <iostream>
+#include "CPlayer.h"
 
 class SceneText : public Scene
 {
@@ -29,15 +28,15 @@ class SceneText : public Scene
 		NUM_GEOMETRY,
 	};
 
-	enum NPCs 
+	enum NPCs
 	{
 		NPC_BOB = 0,
 		NUM_NPC
 	};
 
-	enum environment
+	enum environment_objects
 	{
-		DICE = 0,
+		ENV_DICE = 0,
 		NUM_ENV
 	};
 
@@ -82,8 +81,12 @@ private:
 
 	MS modelStack, viewStack, projectionStack;
 	Light light[1];
-	Cenvironment envObjects[1];
-	Cenvironment* NPCs[1];
+
+	CPlayer gamer[1];
+	transform gamer_transform[1];
+
+	NPC NPCs[NUM_NPC];
+	transform NPCs_transform[NUM_NPC];
 
 	Camera2 camera;
 	
@@ -92,15 +95,12 @@ private:
 	void InitNPCs();
 
 	void RenderMesh(Mesh* mesh, bool enableLight);
-	void RenderMesh(Mesh* mesh, transform object, bool enableLight);
-	void RenderObject(Cenvironment object);
-	void RenderNPC(NPC* npc);
+	void RenderObject(Mesh* mesh, transform object, bool enableLight);
 	void RenderSkybox();
-	std::string print_fps();
 
 	void RenderText(Mesh* mesh, std::string text, Color color);
 	void RenderTextOnScreen(Mesh* mesh, std::string text, Color color, float size, float x, float y);
-
+	std::string print_fps();
 public:
 	SceneText();
 	~SceneText();
