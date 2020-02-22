@@ -1,11 +1,16 @@
 #include "SceneText.h"
 #include "GL\glew.h"
+#include "shader.hpp"
 #include "Application.h"
 #include <Mtx44.h>
-#include "shader.hpp"
+#include <Transformation.h>
 #include "MeshBuilder.h"
 #include "Utility.h"
 #include "LoadTGA.h"
+#include "CNPCs.h"
+#include "SceneMG1.h"
+#include "SceneMG2.h"
+#include "SceneMG3.h"
 
 #define ROT_LIMIT 45.f;
 #define SCALE_LIMIT 5.f;
@@ -52,14 +57,13 @@ void SceneText::Init()
 	m_parameters[U_MATERIAL_DIFFUSE] = glGetUniformLocation(m_programID, "material.kDiffuse");
 	m_parameters[U_MATERIAL_SPECULAR] = glGetUniformLocation(m_programID, "material.kSpecular");
 	m_parameters[U_MATERIAL_SHININESS] = glGetUniformLocation(m_programID, "material.kShininess");
-
+  
 	//Get a handle for our "colorTexture" uniform
 	m_parameters[U_COLOR_TEXTURE_ENABLED] = glGetUniformLocation(m_programID, "colorTextureEnabled");
 	m_parameters[U_COLOR_TEXTURE] = glGetUniformLocation(m_programID, "colorTexture");
 	// Get a handle for our "textColor" uniform
 	m_parameters[U_TEXT_ENABLED] = glGetUniformLocation(m_programID, "textEnabled");
 	m_parameters[U_TEXT_COLOR] = glGetUniformLocation(m_programID, "textColor");
-
 
 	glUseProgram(m_programID);
 	// Enable depth test
@@ -73,7 +77,7 @@ void SceneText::Init()
 
 	// init NPCs
 	InitNPCs();
-
+  
 	meshList[GEO_CHAR] = MeshBuilder::GenerateQuad("char", Color(1, 1, 1), 1.f, 1.f);
 	meshList[GEO_CHAR]->textureID = LoadTGA("Image//char.tga");
 
@@ -81,7 +85,6 @@ void SceneText::Init()
 
 	meshList[GEO_TEXT] = MeshBuilder::GenerateText("text", 16, 16);
 	meshList[GEO_TEXT]->textureID = LoadTGA("Image//calibri.tga");
-
 }
 
 void SceneText::Update(double dt)
@@ -130,6 +133,7 @@ void SceneText::Update(double dt)
 		//to do: switch light type to SPOT and pass the information to
 		light[0].type = Light::LIGHT_SPOT;
 	}
+
 	camera.Update(dt);
 }
 
