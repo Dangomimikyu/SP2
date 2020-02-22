@@ -1,14 +1,14 @@
 #ifndef CNPCS_H
 #define CNPCS_H
 #include <string>
-#include <Vector3.h>
-#include "Vertex.h"
 #include <transformation.h>
-#include "Cenvironment.h"
+#include <Mtx44.h>
+#include <Vector3.h>
+#include "CEntity.h"
 
-class NPC : public Cenvironment {
+class NPC : public CEntity
+{
 private:
-	std::string name;
 	bool idle;
 	int activity_number;
 	Vector3 walk_destination;
@@ -24,5 +24,4 @@ public:
 	void set_idle(void);
 };
 
-
-#endif // ! CNPCS_H
+#endif // !CNPCS_H

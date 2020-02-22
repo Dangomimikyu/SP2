@@ -12,8 +12,6 @@
 #include "SceneMG2.h"
 #include "SceneMG3.h"
 
-//backup 8
-
 #define ROT_LIMIT 45.f;
 #define SCALE_LIMIT 5.f;
 #define LSPEED 10.f
@@ -59,8 +57,7 @@ void SceneText::Init()
 	m_parameters[U_MATERIAL_DIFFUSE] = glGetUniformLocation(m_programID, "material.kDiffuse");
 	m_parameters[U_MATERIAL_SPECULAR] = glGetUniformLocation(m_programID, "material.kSpecular");
 	m_parameters[U_MATERIAL_SHININESS] = glGetUniformLocation(m_programID, "material.kShininess");
-
-
+  
 	//Get a handle for our "colorTexture" uniform
 	m_parameters[U_COLOR_TEXTURE_ENABLED] = glGetUniformLocation(m_programID, "colorTextureEnabled");
 	m_parameters[U_COLOR_TEXTURE] = glGetUniformLocation(m_programID, "colorTexture");
@@ -72,25 +69,22 @@ void SceneText::Init()
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
 
-	// lights
+	// init lights
 	InitLights();
-
-	// skybox
+	
+	// init skybox
 	InitSkybox();
 
-	// init objects ============================================================================================================
+	// init NPCs
+	InitNPCs();
+  
 	meshList[GEO_CHAR] = MeshBuilder::GenerateQuad("char", Color(1, 1, 1), 1.f, 1.f);
 	meshList[GEO_CHAR]->textureID = LoadTGA("Image//char.tga");
-
-	meshList[GEO_DICE] = MeshBuilder::GenerateOBJ("Dice","OBJ//dice.obj");
-	meshList[GEO_DICE]->textureID = LoadTGA("Image//dice.tga");
 
 	meshList[GEO_LIGHTSPHERE] = MeshBuilder::GenerateSphere("lightBall", Color(1.f, 1.f, 1.f), 9, 36, 1.f);
 
 	meshList[GEO_TEXT] = MeshBuilder::GenerateText("text", 16, 16);
 	meshList[GEO_TEXT]->textureID = LoadTGA("Image//calibri.tga");
-	// end init objects ======================================================================================================
-	InitNPCs();
 }
 
 void SceneText::Update(double dt)
@@ -139,50 +133,7 @@ void SceneText::Update(double dt)
 		//to do: switch light type to SPOT and pass the information to
 		light[0].type = Light::LIGHT_SPOT;
 	}
-	if (Application::IsKeyPressed('1')) {
-		
-	}
-	else if (Application::IsKeyPressed('2')) {
-	
-	}
-	else if (Application::IsKeyPressed('3')) {
 
-	}
-	// NPC ========================================================================================================================
-	for (int i = 0; i < NUM_NPC; ++i) {
-		if (static_cast<NPC*>(NPCs[i])->get_activity() == 0) { // activity 0 - talking
-			static float time_elapsed = 0;
-			time_elapsed += (float)(dt * 10);
-			if (time_elapsed > 20) {
-				static_cast<NPC*>(NPCs[i])->set_idle();
-				time_elapsed = 0;
-			}
-		}
-		else if (static_cast<NPC*>(NPCs[i])->get_activity() == 1) {
-			if (NPCs[i]->get_transformation().translation != static_cast<NPC*>(NPCs[i])->get_walk()) { // activity 1 - walking
-				Vector3 distance = static_cast<NPC*>(NPCs[i])->get_walk() - static_cast<NPC*>(NPCs[i])->get_transformation().translation;
-				NPCs[i]->set_transformation('t', Vector3((/*NPCs[i]->get_transformation().translation.x*/static_cast<NPC*>(NPCs[i])->get_walk().x), 0, (static_cast<NPC*>(NPCs[i])->get_walk().z)));
-			}
-		}
-	}
-	if (Application::IsKeyPressed('G')) {
-		NPCs[NPC_BOB]->set_transformation('t', Vector3(0, 0, NPCs[NPC_BOB]->get_transformation().translation.z + (float)(dt * 30)));
-		std::cout << NPCs[NPC_BOB]->get_transformation().translation.z << std::endl;
-	}
-
-	if (static_cast<NPC*>(NPCs[NPC_BOB])->get_transformation().translation == static_cast<NPC*>(NPCs[NPC_BOB])->get_walk()) {
-		static float time_elapsed = 0;
-		time_elapsed += (float)(dt * 10);
-		std::cout << "time elapsed: " << time_elapsed << std::endl;
-		std::cout << "going to x = " << static_cast<NPC*>(NPCs[NPC_BOB])->get_walk().x;
-		std::cout << "going to z = " << static_cast<NPC*>(NPCs[NPC_BOB])->get_walk().z;
-		if (time_elapsed > 5) {
-		static_cast<NPC*>(NPCs[NPC_BOB])->set_idle();
-		time_elapsed = 0;
-		}
-	}
-	// end NPC =====================================================================================================================
-	
 	camera.Update(dt);
 }
 
@@ -224,30 +175,23 @@ void SceneText::Render()
 	RenderMesh(meshList[GEO_LIGHTSPHERE], false);
 	modelStack.PopMatrix();
 
-	// dice
-	transform dice;
-	dice.translation = Vector3(0, -1, 0);
-	dice.rotateAngle = 45;
-	dice.rotation = Vector3(1, 0, 0);
-	dice.scaling = Vector3(5, 5, 5);
+	//modelStack.PushMatrix();
+	//modelStack.Translate(0, -3, 0);
+	//RenderMesh(meshList[GEO_DICE], true);
+	//modelStack.PopMatrix();
+
 
 	modelStack.PushMatrix();
-	RenderMesh(meshList[GEO_DICE], dice, true);
+	RenderObject(meshList[NPC_BOB], NPCs_transform[NPC_BOB], true);
 	modelStack.PopMatrix();
-	// dice end
 
-	// gary
-	RenderNPC(static_cast<NPC*>(NPCs[NPC_BOB]));
-	// gary end
-
-	// world text
 	modelStack.PushMatrix();
-	modelStack.Scale(1, 1, 1);
-	RenderText(meshList[GEO_TEXT], "what is up gamers", Color(0, 1, 0));
+	//scale, translate, rotate
+	RenderText(meshList[GEO_TEXT], "HELLO WORLD", Color(0, 1, 0));
 	modelStack.PopMatrix();
-	
-	//on-screen text
-	RenderTextOnScreen(meshList[GEO_TEXT], "Current FPS: " + print_fps(), Color(0, 1, 0), 3, 0, 0);
+
+	//No transform needed
+	RenderTextOnScreen(meshList[GEO_TEXT], "Hello World", Color(0, 1, 0), 2, 0, 0);
 
 }
 
@@ -329,17 +273,17 @@ void SceneText::InitLights()
 
 void SceneText::InitNPCs()
 {
-	NPCs[NPC_BOB] = new NPC();
-
-	// gary
 	meshList[NPC_BOB] = MeshBuilder::GenerateOBJ("NPC", "obj//gary.obj");
 	meshList[NPC_BOB]->material.kAmbient.Set(1, 1, 1);
 	meshList[NPC_BOB]->material.kDiffuse.Set(1, 1, 1);
 	meshList[NPC_BOB]->material.kSpecular.Set(1, 1, 1);
 	meshList[NPC_BOB]->material.kShininess = 0.6f;
-	NPCs[NPC_BOB]->set_transformation('t', Vector3(0, 0, 0));
-	NPCs[NPC_BOB]->set_transformation(0.f, Vector3(1, 0, 0));
-	NPCs[NPC_BOB]->set_transformation('s', Vector3(0.8f, 0.8f, 0.8f));
+
+	NPCs_transform[NPC_BOB].translation = Vector3(2, -14, 0);
+	NPCs_transform[NPC_BOB].rotationX.angle = 90;
+	NPCs_transform[NPC_BOB].rotationY.angle = 33;
+	NPCs_transform[NPC_BOB].rotationZ.angle = 0;
+	NPCs_transform[NPC_BOB].scaling = Vector3(0.8f, 0.8f, 0.8f);
 }
 
 void SceneText::RenderMesh(Mesh* mesh, bool enableLight)
@@ -383,10 +327,12 @@ void SceneText::RenderMesh(Mesh* mesh, bool enableLight)
 	if(mesh->textureID > 0) glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void SceneText::RenderMesh(Mesh* mesh, transform object, bool enableLight)
+void SceneText::RenderObject(Mesh* mesh, transform object, bool enableLight)
 {
 	modelStack.Translate(object.translation);
-	modelStack.Rotate(object.rotateAngle, object.rotation);
+	modelStack.Rotate(object.rotationX);
+	modelStack.Rotate(object.rotationY);
+	modelStack.Rotate(object.rotationZ);
 	modelStack.Scale(object.scaling);
 
 	Mtx44 MVP, modelView, modelView_inverse_transpose;
@@ -427,20 +373,6 @@ void SceneText::RenderMesh(Mesh* mesh, transform object, bool enableLight)
 	mesh->Render(); //this line should only be called once in the whole function
 
 	if (mesh->textureID > 0) glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void SceneText::RenderObject(Cenvironment object)
-{
-	modelStack.PushMatrix();
-	//RenderMesh(meshList[INSERT_OBJ_NAME], object.get_transformation(), true);
-	modelStack.PopMatrix();
-}
-
-void SceneText::RenderNPC(NPC* NPC)
-{
-	modelStack.PushMatrix();
-	RenderMesh(meshList[NPC_BOB], NPC->get_transformation(), true);
-	modelStack.PopMatrix();
 }
 
 void SceneText::RenderSkybox()
@@ -492,22 +424,6 @@ void SceneText::RenderSkybox()
 		modelStack.Rotate(180.f, 0.f, 1.f, 0.f);
 		RenderMesh(meshList[GEO_BACK], false);
 	modelStack.PopMatrix();
-}
-
-std::string SceneText::print_fps()
-{
-	static float framesPerSecond = 0.0f;
-	static int fps;
-	static float lastTime = 0.0f;
-	float currentTime = GetTickCount() * 0.001f;
-	++framesPerSecond;
-	std::string output = "";
-	if (currentTime - lastTime > 1.f) {
-		lastTime = currentTime;
-		fps = (int)framesPerSecond;
-		framesPerSecond = 0;
-	}
-	return std::to_string(fps);
 }
 
 void SceneText::RenderText(Mesh* mesh, std::string text, Color color)
@@ -565,9 +481,9 @@ void SceneText::RenderTextOnScreen(Mesh* mesh, std::string text, Color color, fl
 	glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
 	for (unsigned i = 0; i < text.length(); ++i)
 	{
-		Mtx44 char_spacing;
-		char_spacing.SetToTranslation(i * 1.0f, 0, 0); //1.0f is the spacing of each character, you may change this value
-		Mtx44 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top() * char_spacing;
+		Mtx44 characterSpacing;
+		characterSpacing.SetToTranslation(i * 1.0f, 0, 0); //1.0f is the spacing of each character, you may change this value
+		Mtx44 MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top() * characterSpacing;
 		glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, &MVP.a[0]);
 
 		mesh->Render((unsigned)text[i] * 6, 6);
@@ -579,4 +495,20 @@ void SceneText::RenderTextOnScreen(Mesh* mesh, std::string text, Color color, fl
 	modelStack.PopMatrix();
 
 	glEnable(GL_DEPTH_TEST);
+}
+
+std::string SceneText::print_fps()
+{
+	static float framesPerSecond = 0.0f;
+	static int fps;
+	static float lastTime = 0.0f;
+	float currentTime = GetTickCount() * 0.001f;
+	++framesPerSecond;
+	std::string output = "";
+	if (currentTime - lastTime > 1.f) {
+		lastTime = currentTime;
+		fps = (int)framesPerSecond;
+		framesPerSecond = 0;
+	}
+	return std::to_string(fps);
 }
