@@ -1,40 +1,40 @@
 #include "CNPCs.h"
-#include <ctime>
 
-NPC::NPC() : name("bob"), idle(true)
+NPC::NPC() : idle(true), activity_number(-1), walk_destination(0, 0, 0)
 {
-	std::cout << "N E W  N P C"; // testing
+	std::cout << "Creating new NPC" << std::endl;
 	srand(time(0));
-	activity();
+	activity(false);
 }
 
-int NPC::activity(bool player)
+void NPC::activity(bool player)
 {
-	int activity_number = 0;
 	if (player) {
 		activity_number = 99;
 		// insert code for player interaction
+		return;
 	}
 	if (idle) {
-		activity_number = rand() % 3;
-		switch (activity_number) {
-		case 0: // npc is talking to another NPC
-			std::cout << "talking";
+		activity_number = rand() % 10;
+		if (activity_number < 2) { // chill
+			std::cout << "chilling" << std::endl;
 			idle = false;
-			break;
-		case 1: // npc is walking somewhere
-			walk_destination.x = rand() % 10;
+		}
+		else if (activity_number >= 2) { // walking somewhere
+			walk_destination.x = rand() % 50;
 			walk_destination.y = 0;
-			walk_destination.z = rand() % 10;
-			std::cout << "going to: " << walk_destination.x << ", " << walk_destination.z;
+			walk_destination.z = rand() % 50;
+			std::cout << "going to: " << walk_destination.x << ", " << walk_destination.z << std::endl;
 			idle = false;
-			break;
-		case 2: // npc wants to play arcade game
+		}
+		else if (activity_number > 5 && activity_number < 8) {// arcade cabinet
 			int cabinet = rand() % 3;
-			// go to cabinet location
+			// go to cabinet
+		}
+		else if (activity_number >= 8) { // getting coffee
+			// go to coffee machine
 		}
 	}
-	return activity_number;
 }
 
 Vector3 NPC::get_walk(void) const
@@ -47,30 +47,15 @@ bool NPC::get_idle(void) const
 	return idle;
 }
 
-transform NPC::get_transformation(void) const
+int NPC::get_activity(void) const
 {
-	return transformations;
+	return activity_number;
 }
-void NPC::set_transformation(float angle, Vector3 vector)
-{
-	transformations.rotateAngle = angle;
-	transformations.rotation = vector;
-}
-void NPC::set_transformation(char type, Vector3 vector)
-{
-	if (type == 't') { // translate
-		transformations.translation = vector;
-	}
-	else if (type == 's') { // scale
-		transformations.scaling = vector;
-	}
-	else {
-		throw ("you entered something that is not translate or scale");
-	}
-}
+
 void NPC::set_idle(void)
 {
-	std::cout << "setting idle as: " << idle << std::endl;
 	idle = !idle;
+	std::cout << "setting idle as: " << idle << std::endl;
 	activity(false);
+
 }
