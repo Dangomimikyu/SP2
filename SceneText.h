@@ -3,12 +3,15 @@
 
 #include "Scene.h"
 #include <MatrixStack.h>
-#include <transformation.h>
 #include "Camera2.h"
 #include "Mesh.h"
 #include "Light.h"
+#include <transformation.h>
 #include "CNPCs.h"
-#include <iostream>
+#include "CPlayer.h"
+#include "CCollision.h"
+#include "CRectangle.h"
+#include "CBezier.h"
 
 class SceneText : public Scene
 {
@@ -25,13 +28,21 @@ class SceneText : public Scene
 		GEO_DICE,
 		GEO_LIGHTSPHERE,
 		GEO_TEXT,
+		GEO_CUBE,
 		NUM_GEOMETRY,
 	};
 
-	enum NPCs 
+	enum NPCs
 	{
-		NPC_GARY = 0,
+		NPC_BOB = 0,
+		DICE,
 		NUM_NPC
+	};
+
+	enum environment_objects
+	{
+		ENV_DICE = 0,
+		NUM_ENV
 	};
 
 	enum Scene5_UNIFORM_TYPE
@@ -75,21 +86,35 @@ private:
 
 	MS modelStack, viewStack, projectionStack;
 	Light light[1];
-	std::cout << "LIGHT";
-	NPC NPCs[1];
 
+	CPlayer gamer;
+	CCollision* cube;
+	CCollision* sphere;
+
+	//bezier curve points
+
+	NPC NPCs[NUM_NPC];
+	transform NPCs_transform[NUM_NPC];
+	transform playerPos;
+	transform spheree;
+	transform cubee;
 	Camera2 camera;
+	float walkingX;
+	float walkingZ;
 	
+
+	void InitSkybox();
+	void InitLights();
+	void InitNPCs();
+
 	void RenderMesh(Mesh* mesh, bool enableLight);
-	void RenderMesh(Mesh* mesh, transform object, bool enableLight);
-	void RenderGary(NPC NPC, transform NPC_transform);
-	void RenderGary(NPC NPC);
+	void RenderObject(Mesh* mesh, transform object, bool enableLight);
+	/*void RenderObjectHierarchial(Mesh* mesh, transform object, bool enableLight);*/
 	void RenderSkybox();
-	std::string print_fps();
 
 	void RenderText(Mesh* mesh, std::string text, Color color);
 	void RenderTextOnScreen(Mesh* mesh, std::string text, Color color, float size, float x, float y);
-
+	std::string print_fps();
 public:
 	SceneText();
 	~SceneText();
