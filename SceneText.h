@@ -9,6 +9,9 @@
 #include <transformation.h>
 #include "CNPCs.h"
 #include "CPlayer.h"
+#include "CCollision.h"
+#include "CRectangle.h"
+#include "CBezier.h"
 
 class SceneText : public Scene
 {
@@ -25,12 +28,14 @@ class SceneText : public Scene
 		GEO_DICE,
 		GEO_LIGHTSPHERE,
 		GEO_TEXT,
+		GEO_CUBE,
 		NUM_GEOMETRY,
 	};
 
 	enum NPCs
 	{
 		NPC_BOB = 0,
+		DICE,
 		NUM_NPC
 	};
 
@@ -82,20 +87,29 @@ private:
 	MS modelStack, viewStack, projectionStack;
 	Light light[1];
 
-	CPlayer gamer[1];
-	transform gamer_transform[1];
+	CPlayer gamer;
+	CCollision* cube;
+	CCollision* sphere;
+
+	//bezier curve points
 
 	NPC NPCs[NUM_NPC];
 	transform NPCs_transform[NUM_NPC];
-
+	transform playerPos;
+	transform spheree;
+	transform cubee;
 	Camera2 camera;
+	float walkingX;
+	float walkingZ;
 	
+
 	void InitSkybox();
 	void InitLights();
 	void InitNPCs();
 
 	void RenderMesh(Mesh* mesh, bool enableLight);
 	void RenderObject(Mesh* mesh, transform object, bool enableLight);
+	/*void RenderObjectHierarchial(Mesh* mesh, transform object, bool enableLight);*/
 	void RenderSkybox();
 
 	void RenderText(Mesh* mesh, std::string text, Color color);

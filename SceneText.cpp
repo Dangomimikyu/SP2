@@ -1,16 +1,12 @@
 #include "SceneText.h"
 #include "GL\glew.h"
-#include "shader.hpp"
 #include "Application.h"
 #include <Mtx44.h>
-#include <Transformation.h>
+#include "shader.hpp"
 #include "MeshBuilder.h"
 #include "Utility.h"
 #include "LoadTGA.h"
-#include "CNPCs.h"
-#include "SceneMG1.h"
-#include "SceneMG2.h"
-#include "SceneMG3.h"
+
 
 #define ROT_LIMIT 45.f;
 #define SCALE_LIMIT 5.f;
@@ -30,7 +26,14 @@ SceneText::~SceneText()
 
 void SceneText::Init()
 {
+	gamer.setRadius(1);
+	walkingX = 5;
+	walkingZ = 5;
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+	sphere = new CCollision;
+	cube = new CRectangle;
+
+	
 
 	// Generate a default VAO for now
 	glGenVertexArrays(1, &m_vertexArrayID);
@@ -57,13 +60,14 @@ void SceneText::Init()
 	m_parameters[U_MATERIAL_DIFFUSE] = glGetUniformLocation(m_programID, "material.kDiffuse");
 	m_parameters[U_MATERIAL_SPECULAR] = glGetUniformLocation(m_programID, "material.kSpecular");
 	m_parameters[U_MATERIAL_SHININESS] = glGetUniformLocation(m_programID, "material.kShininess");
-  
+
 	//Get a handle for our "colorTexture" uniform
 	m_parameters[U_COLOR_TEXTURE_ENABLED] = glGetUniformLocation(m_programID, "colorTextureEnabled");
 	m_parameters[U_COLOR_TEXTURE] = glGetUniformLocation(m_programID, "colorTexture");
 	// Get a handle for our "textColor" uniform
 	m_parameters[U_TEXT_ENABLED] = glGetUniformLocation(m_programID, "textEnabled");
 	m_parameters[U_TEXT_COLOR] = glGetUniformLocation(m_programID, "textColor");
+
 
 	glUseProgram(m_programID);
 	// Enable depth test
@@ -77,7 +81,7 @@ void SceneText::Init()
 
 	// init NPCs
 	InitNPCs();
-  
+
 	meshList[GEO_CHAR] = MeshBuilder::GenerateQuad("char", Color(1, 1, 1), 1.f, 1.f);
 	meshList[GEO_CHAR]->textureID = LoadTGA("Image//char.tga");
 
@@ -85,10 +89,24 @@ void SceneText::Init()
 
 	meshList[GEO_TEXT] = MeshBuilder::GenerateText("text", 16, 16);
 	meshList[GEO_TEXT]->textureID = LoadTGA("Image//calibri.tga");
+
+	meshList[GEO_DICE] = MeshBuilder::GenerateSphere("sphere", Color(1.f, 0, 0), 9, 36, 1.f);
+
+	meshList[GEO_CUBE] = MeshBuilder::GenerateCuboid("cuboid", Color(1.f, 0, 0), 1, 1, 1);
 }
 
 void SceneText::Update(double dt)
 {
+	sphere->set_transformation('t', Vector3(spheree.translation.x, spheree.translation.y, spheree.translation.z));
+	sphere->roundCollision(gamer, playerPos, 1);
+	cube->set_transformation('t', Vector3(8, 0, 5));
+	static_cast<CRectangle*>(cube)->roundCollision(gamer, playerPos, 6.8f, 4.f, 2.3f, 2.f);
+	/*cube.set_transformation('t', Vector3(cubee.translation.x, cubee.translation.y, cubee.translation.z));
+	sphere.roundCollision(gamer, player, 1);
+	cube.roundCollision(gamer, player, 1);*/
+
+	CCollision* objects[3] = {  sphere, cube};
+
 	if (Application::IsKeyPressed(0x31))
 	{
 		glDisable(GL_CULL_FACE);
@@ -134,7 +152,59 @@ void SceneText::Update(double dt)
 		light[0].type = Light::LIGHT_SPOT;
 	}
 
+	for (int i = 0; i < 2; i++)
+	{
+		if (objects[i]->getCollide() == false)
+		{
+			if (Application::IsKeyPressed('V'))
+			{
+				walkingX -= (float)(5 * dt);
+			}
+			if (Application::IsKeyPressed('N'))
+				walkingX += (float)(5 * dt);
+			if (Application::IsKeyPressed('G'))
+				walkingZ -= (float)(5 * dt);
+			if (Application::IsKeyPressed('B'))
+				walkingZ += (float)(5 * dt);
+		}
+		if (objects[i]->getCollide() == true /*&& timelapse >= 3*/) {
+			if (Application::IsKeyPressed('V'))
+			{
+				/*player1.position.x += data[i].getoverlap() * (player1.position.x - data[i].getPositionX()) / data[i].getDistance();
+				player1.position.y += data[i].getoverlap() * (player1.position.y - data[i].getPositionZ()) / data[i].getDistance();*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+				/*timelapse = 0;*/
+			}
+			if (Application::IsKeyPressed('N'))
+			{
+				/*player1.position.x -= 1;*/
+				/*timelapse = 0;*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+
+			}
+			if (Application::IsKeyPressed('G'))
+			{
+				/*player1.position.z += 1;*/
+				/*timelapse = 0;*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+
+			}
+			if (Application::IsKeyPressed('B'))
+			{
+				/*player1.position.z -= 1;*/
+				/*timelapse = 0;*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+			}
+		}
+	}
+
 	camera.Update(dt);
+	
+
 }
 
 void SceneText::Render()
@@ -175,24 +245,44 @@ void SceneText::Render()
 	RenderMesh(meshList[GEO_LIGHTSPHERE], false);
 	modelStack.PopMatrix();
 
-	//modelStack.PushMatrix();
-	//modelStack.Translate(0, -3, 0);
-	//RenderMesh(meshList[GEO_DICE], true);
-	//modelStack.PopMatrix();
-
-
 	modelStack.PushMatrix();
-	RenderObject(meshList[NPC_BOB], NPCs_transform[NPC_BOB], true);
+	playerPos.translation = Vector3(walkingX, 0, walkingZ);
+	RenderObject(meshList[GEO_DICE], playerPos, true);
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix();
+	spheree.translation = Vector3(0, 0, 0);
+	RenderObject(meshList[GEO_DICE], spheree, true);
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	cubee.translation = Vector3(8, 0, 5);
+	cubee.scaling = Vector3(2, 2, 2);
+	RenderObject(meshList[GEO_CUBE], cubee, true);
+	modelStack.PopMatrix();
+
+	/*modelStack.PushMatrix();
+	RenderObject(meshList[NPC_BOB], NPCs_transform[NPC_BOB], true);
+	modelStack.PopMatrix();*/
+
+
+	modelStack.PushMatrix();
 	//scale, translate, rotate
+	modelStack.Translate(0, 0, 0);
 	RenderText(meshList[GEO_TEXT], "HELLO WORLD", Color(0, 1, 0));
 	modelStack.PopMatrix();
 
 	//No transform needed
-	RenderTextOnScreen(meshList[GEO_TEXT], "Hello World", Color(0, 1, 0), 2, 0, 0);
+	RenderTextOnScreen(meshList[GEO_TEXT], std::to_string(sphere->getDistance()), Color(0, 1, 0), 2, 0, 0);
 
+	modelStack.PushMatrix();
+	if (sphere->getCollide() == false) {
+		RenderTextOnScreen(meshList[GEO_TEXT], "Collision false", Color(0, 1, 0), 2, 0, 1);
+	}
+	else {
+		RenderTextOnScreen(meshList[GEO_TEXT], "Collision true", Color(0, 1, 0), 2, 0, 1);
+	}
+	modelStack.PopMatrix();
 }
 
 void SceneText::Exit()
@@ -279,11 +369,21 @@ void SceneText::InitNPCs()
 	meshList[NPC_BOB]->material.kSpecular.Set(1, 1, 1);
 	meshList[NPC_BOB]->material.kShininess = 0.6f;
 
-	NPCs_transform[NPC_BOB].translation = Vector3(2, -14, 0);
+	NPCs_transform[NPC_BOB].translation = Vector3(5, 0, 0);
 	NPCs_transform[NPC_BOB].rotationX.angle = 90;
 	NPCs_transform[NPC_BOB].rotationY.angle = 33;
 	NPCs_transform[NPC_BOB].rotationZ.angle = 0;
-	NPCs_transform[NPC_BOB].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	NPCs_transform[NPC_BOB].scaling = Vector3(1.f, 1.f, 1.f);
+
+	/*modelStack.PushMatrix();
+	///scale, translate, rotate 
+	modelStack.Translate(-50.f, 0.f, 0.f);
+	modelStack.Scale(1.f, 1.f, 1.f);
+	modelStack.Rotate(90.f, 0.f, 1.f, 0.f);
+	RenderMesh(meshList[NPC_BOB], false);
+	modelStack.PopMatrix();*/
+
+	NPCs_transform[DICE].translation = Vector3(10, 0, 30);
 }
 
 void SceneText::RenderMesh(Mesh* mesh, bool enableLight)
@@ -374,6 +474,56 @@ void SceneText::RenderObject(Mesh* mesh, transform object, bool enableLight)
 
 	if (mesh->textureID > 0) glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+//void SceneText::RenderObjectHierarchial(Mesh* mesh, transform object, bool enableLight)
+//{
+//	modelStack.PushMatrix();
+//	modelStack.Translate(object.translation);
+//	modelStack.Rotate(object.rotationX);
+//	modelStack.Rotate(object.rotationY);
+//	modelStack.Rotate(object.rotationZ);
+//	modelStack.Scale(object.scaling);
+//
+//	Mtx44 MVP, modelView, modelView_inverse_transpose;
+//
+//	MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
+//	glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, &MVP.a[0]);
+//
+//	modelView = viewStack.Top() * modelStack.Top();
+//	glUniformMatrix4fv(m_parameters[U_MODELVIEW], 1, GL_FALSE, &modelView.a[0]);
+//
+//
+//	if (enableLight)
+//	{
+//		glUniform1i(m_parameters[U_LIGHTENABLED], 1);
+//		modelView_inverse_transpose = modelView.GetInverse().GetTranspose();
+//		glUniformMatrix4fv(m_parameters[U_MODELVIEW_INVERSE_TRANSPOSE], 1, GL_FALSE, &modelView_inverse_transpose.a[0]);
+//
+//		//load material
+//		glUniform3fv(m_parameters[U_MATERIAL_AMBIENT], 1, &mesh->material.kAmbient.r);
+//		glUniform3fv(m_parameters[U_MATERIAL_DIFFUSE], 1, &mesh->material.kDiffuse.r);
+//		glUniform3fv(m_parameters[U_MATERIAL_SPECULAR], 1, &mesh->material.kSpecular.r);
+//		glUniform1f(m_parameters[U_MATERIAL_SHININESS], mesh->material.kShininess);
+//	}
+//	else
+//	{
+//		glUniform1i(m_parameters[U_LIGHTENABLED], 0);
+//	}
+//
+//	if (mesh->textureID > 0) {
+//		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
+//		glActiveTexture(GL_TEXTURE0);
+//		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
+//		glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
+//	}
+//	else {
+//		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 0);
+//	}
+//	mesh->Render(); //this line should only be called once in the whole function
+//
+//	if (mesh->textureID > 0) glBindTexture(GL_TEXTURE_2D, 0);
+//
+//}
 
 void SceneText::RenderSkybox()
 {
