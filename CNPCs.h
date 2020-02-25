@@ -9,10 +9,11 @@
 class NPC : public CEntity
 {
 private:
+	int replyChance;
 	bool idle;
 	int activity_number;
-	std::string activity_name;
 	Vector3 walk_destination;
+	bool goodReply; // new
 public:
 	NPC();
 
@@ -20,7 +21,8 @@ public:
 
 	Vector3 get_walk(void) const;
 	bool get_idle(void) const;
-	std::string get_activity(void) const;
+	int get_activity(void) const;
+	bool get_goodReply(void) const; //new
 
 	void set_idle(void);
 };
