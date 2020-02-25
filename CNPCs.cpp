@@ -17,23 +17,27 @@ void NPC::activity(bool player)
 	if (idle) {
 		activity_number = rand() % 10;
 		if (activity_number < 2) { // chill
-			std::cout << "chilling" << std::endl;
+			activity_name = "chilling";
 			idle = false;
 		}
-		else if (activity_number >= 2) { // walking somewhere
+		else if (activity_number >= 2 && activity_number <= 5) { // walking somewhere
 			walk_destination.x = rand() % 50;
 			walk_destination.y = 0;
 			walk_destination.z = rand() % 50;
 			std::cout << "going to: " << walk_destination.x << ", " << walk_destination.z << std::endl;
+			activity_name = "walking";
 			idle = false;
 		}
 		else if (activity_number > 5 && activity_number < 8) {// arcade cabinet
 			int cabinet = rand() % 3;
+			activity_name = "gaming";
 			// go to cabinet
 		}
 		else if (activity_number >= 8) { // getting coffee
 			// go to coffee machine
+			activity_name = "getting coffee";
 		}
+		std::cout << activity_name << std::endl;
 	}
 }
 
@@ -47,9 +51,9 @@ bool NPC::get_idle(void) const
 	return idle;
 }
 
-int NPC::get_activity(void) const
+std::string NPC::get_activity(void) const
 {
-	return activity_number;
+	return activity_name;
 }
 
 void NPC::set_idle(void)
