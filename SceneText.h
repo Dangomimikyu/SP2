@@ -12,6 +12,7 @@
 #include "CPlayer.h"
 #include "CCollision.h"
 #include "CRectangle.h"
+#include "CBezier.h"
 
 class SceneText : public Scene
 {
@@ -29,7 +30,6 @@ class SceneText : public Scene
     GEO_CUBE,
 		GEO_LIGHTSPHERE,
 		GEO_TEXT,
-
 		GEO_ENV_ARCADE_BUTTON_EXT,
 		GEO_ENV_ARCADE_BUTTON_INT,
 		GEO_ENV_ARCADE_HEADSET,
@@ -50,7 +50,7 @@ class SceneText : public Scene
 		GEO_ENV_SIGNPOST_5,
 		GEO_ENV_COFFEE_MACHINE,
 		GEO_ENV_COFFEE_CUP,
-		GEO_ENV_TELEPORTER,
+		GEO_ENV_CAR, // new
 
 		GEO_NPC_BOB_HEAD,
 		GEO_NPC_BOB_BODY,
@@ -102,7 +102,7 @@ class SceneText : public Scene
 		ENV_SIGNPOST_5,
 		ENV_COFFEE_MACHINE,
 		ENV_COFFEE_CUP,
-		ENV_TELEPORTER,
+		ENV_CAR, //new
 		NUM_OBJECTS
 	};
 
@@ -160,7 +160,7 @@ private:
 	transform obj_transform[NUM_OBJECTS];
 
 	transform skybox_transform[6]; // left = 0, right = 1, up = 2, down = 3, front = 4, back = 5
-  
+	
 	CPlayer gamer;
 	CCollision* cube;
 	CCollision* sphere;
@@ -176,14 +176,21 @@ private:
   
 	float walkingX; // remove later
 	float walkingZ; // remove later
-	
+
+	bool NPCinRange; //test purpose
+	int ClosestNPC; //  new
+	bool M_pressed; // new
+	bool nearCar;// new
+
 	void InitSkybox();
 	void InitLights();
 	void InitNPCs();
 	void InitObjs();
 
 	void RenderMesh(Mesh* mesh, bool enableLight);
+
 	void RenderObject(Mesh* mesh, transform object, bool hierarchical, bool enableLight);
+  
 	void RenderSkybox();
 
 	void RenderText(Mesh* mesh, std::string text, Color color);

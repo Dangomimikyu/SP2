@@ -11,33 +11,37 @@ void NPC::activity(bool player)
 {
 	if (player) {
 		activity_number = 99;
-		// insert code for player interaction
+		// insert code for player interaction	
+		replyChance = rand() % 5;
+		if (replyChance == 1) {
+			goodReply = true;
+		}
+		else {
+			goodReply = false;
+		}
+		// replies decided in scene
 		return;
 	}
 	if (idle) {
 		activity_number = rand() % 10;
 		if (activity_number < 2) { // chill
-			activity_name = "chilling";
+			std::cout << "chilling" << std::endl;
 			idle = false;
 		}
-		else if (activity_number >= 2 && activity_number <= 5) { // walking somewhere
+		else if (activity_number >= 2) { // walking somewhere
 			walk_destination.x = rand() % 50;
 			walk_destination.y = 0;
 			walk_destination.z = rand() % 50;
 			std::cout << "going to: " << walk_destination.x << ", " << walk_destination.z << std::endl;
-			activity_name = "walking";
 			idle = false;
 		}
 		else if (activity_number > 5 && activity_number < 8) {// arcade cabinet
 			int cabinet = rand() % 3;
-			activity_name = "gaming";
 			// go to cabinet
 		}
 		else if (activity_number >= 8) { // getting coffee
 			// go to coffee machine
-			activity_name = "getting coffee";
 		}
-		std::cout << activity_name << std::endl;
 	}
 }
 
@@ -51,9 +55,14 @@ bool NPC::get_idle(void) const
 	return idle;
 }
 
-std::string NPC::get_activity(void) const
+int NPC::get_activity(void) const
 {
-	return activity_name;
+	return activity_number;
+}
+
+bool NPC::get_goodReply(void) const
+{
+	return goodReply; //new
 }
 
 void NPC::set_idle(void)
