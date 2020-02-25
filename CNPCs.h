@@ -11,6 +11,7 @@ class NPC : public CEntity
 private:
 	bool idle;
 	int activity_number;
+	std::string activity_name;
 	Vector3 walk_destination;
 public:
 	NPC();
@@ -19,7 +20,7 @@ public:
 
 	Vector3 get_walk(void) const;
 	bool get_idle(void) const;
-	int get_activity(void) const;
+	std::string get_activity(void) const;
 
 	void set_idle(void);
 };
