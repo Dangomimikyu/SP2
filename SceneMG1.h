@@ -7,6 +7,10 @@
 #include "Camera2.h"
 #include "Mesh.h"
 #include "Light.h"
+#include "CCollision.h"
+#include "CCar.h"
+#include "CRectangle.h"
+
 
 class SceneMG1 : public Scene
 {
@@ -19,10 +23,14 @@ class SceneMG1 : public Scene
 		GEO_BOTTOM,
 		GEO_FRONT,
 		GEO_BACK,
+
 		GEO_CHAR,
 		GEO_DICE,
 		GEO_LIGHTSPHERE,
 		GEO_TEXT,
+		GEO_CAR1,
+		GEO_WHEELS1,
+		GEO_SPHERE,
 		NUM_GEOMETRY,
 	};
 
@@ -69,11 +77,22 @@ private:
 	Light light[1];
 
 	Camera2 camera;
-
+	CCar car1;
+	transform car1Transform;
+	CCollision* cube;
+	CCollision* sphere;
+	transform cubeTransform;
+	transform sphereTransform;
+	
 	void RenderMesh(Mesh* mesh, bool enableLight);
 	void RenderMesh(Mesh* mesh, transform object, bool enableLight);
+	void RenderObject(Mesh* mesh, transform object, bool enableLight);
 	void RenderSkybox();
 	std::string print_fps();
+	float distanceX;
+	float distanceZ;
+	float rotateY;
+	bool forward;
 
 	void RenderText(Mesh* mesh, std::string text, Color color);
 	void RenderTextOnScreen(Mesh* mesh, std::string text, Color color, float size, float x, float y);
