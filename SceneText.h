@@ -12,6 +12,7 @@
 #include "CPlayer.h"
 #include "CCollision.h"
 #include "CRectangle.h"
+#include "CBezier.h"
 
 class SceneText : public Scene
 {
@@ -26,9 +27,9 @@ class SceneText : public Scene
 		GEO_BACK,
 		GEO_CHAR,
 		GEO_DICE,
+    GEO_CUBE,
 		GEO_LIGHTSPHERE,
 		GEO_TEXT,
-
 		GEO_ENV_ARCADE_BUTTON_EXT,
 		GEO_ENV_ARCADE_BUTTON_INT,
 		GEO_ENV_ARCADE_HEADSET,
@@ -142,16 +143,31 @@ private:
 	transform obj_transform[NUM_OBJECTS];
 
 	transform skybox_transform[6]; // left = 0, right = 1, up = 2, down = 3, front = 4, back = 5
+  
+	CPlayer gamer;
+	CCollision* cube;
+	CCollision* sphere;
 
+	//bezier curve points
+	transform playerPos;
+	transform spheree;
+	transform cubee;
+  
 	Camera2 camera;
+  
+	float walkingX; // remove later
+	float walkingZ; // remove later
 	
+
 	void InitSkybox();
 	void InitLights();
 	void InitNPCs();
 	void InitObjs();
 
 	void RenderMesh(Mesh* mesh, bool enableLight);
+
 	void RenderObject(Mesh* mesh, transform object, bool hierarchical, bool enableLight);
+  
 	void RenderSkybox();
 
 	void RenderText(Mesh* mesh, std::string text, Color color);

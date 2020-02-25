@@ -25,7 +25,14 @@ SceneText::~SceneText()
 
 void SceneText::Init()
 {
+	gamer.setRadius(1);
+	walkingX = 5;
+	walkingZ = 5;
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+	sphere = new CCollision;
+	cube = new CRectangle;
+
+	
 
 	// Generate a default VAO for now
 	glGenVertexArrays(1, &m_vertexArrayID);
@@ -87,10 +94,23 @@ void SceneText::Init()
 	meshList[GEO_TEXT] = MeshBuilder::GenerateText("text", 16, 16);
 	meshList[GEO_TEXT]->textureID = LoadTGA("Image//calibri.tga");
 
+	meshList[GEO_DICE] = MeshBuilder::GenerateSphere("sphere", Color(1.f, 0, 0), 9, 36, 1.f);
+
+	meshList[GEO_CUBE] = MeshBuilder::GenerateCuboid("cuboid", Color(1.f, 0, 0), 1, 1, 1);
 }
 
 void SceneText::Update(double dt)
 {
+	sphere->set_transformation('t', Vector3(spheree.translation.x, spheree.translation.y, spheree.translation.z));
+	sphere->roundCollision(gamer, playerPos, 1);
+	cube->set_transformation('t', Vector3(8, 0, 5));
+	static_cast<CRectangle*>(cube)->roundCollision(gamer, playerPos, 6.8f, 4.f, 2.3f, 2.f);
+	/*cube.set_transformation('t', Vector3(cubee.translation.x, cubee.translation.y, cubee.translation.z));
+	sphere.roundCollision(gamer, player, 1);
+	cube.roundCollision(gamer, player, 1);*/
+
+	CCollision* objects[3] = {  sphere, cube};
+
 	if (Application::IsKeyPressed(0x31))
 	{
 		glDisable(GL_CULL_FACE);
@@ -135,6 +155,56 @@ void SceneText::Update(double dt)
 		//to do: switch light type to SPOT and pass the information to
 		light[0].type = Light::LIGHT_SPOT;
 	}
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (objects[i]->getCollide() == false)
+		{
+			if (Application::IsKeyPressed('V'))
+			{
+				walkingX -= (float)(5 * dt);
+			}
+			if (Application::IsKeyPressed('N'))
+				walkingX += (float)(5 * dt);
+			if (Application::IsKeyPressed('G'))
+				walkingZ -= (float)(5 * dt);
+			if (Application::IsKeyPressed('B'))
+				walkingZ += (float)(5 * dt);
+		}
+		if (objects[i]->getCollide() == true /*&& timelapse >= 3*/) {
+			if (Application::IsKeyPressed('V'))
+			{
+				/*player1.position.x += data[i].getoverlap() * (player1.position.x - data[i].getPositionX()) / data[i].getDistance();
+				player1.position.y += data[i].getoverlap() * (player1.position.y - data[i].getPositionZ()) / data[i].getDistance();*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+				/*timelapse = 0;*/
+			}
+			if (Application::IsKeyPressed('N'))
+			{
+				/*player1.position.x -= 1;*/
+				/*timelapse = 0;*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+
+			}
+			if (Application::IsKeyPressed('G'))
+			{
+				/*player1.position.z += 1;*/
+				/*timelapse = 0;*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+
+			}
+			if (Application::IsKeyPressed('B'))
+			{
+				/*player1.position.z -= 1;*/
+				/*timelapse = 0;*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+			}
+		}
+	}
 	camera.Update(dt);
 }
 
@@ -176,25 +246,40 @@ void SceneText::Render()
 	RenderMesh(meshList[GEO_LIGHTSPHERE], false);
 	modelStack.PopMatrix();
 
-	//modelStack.PushMatrix();
-	//modelStack.Translate(0, -3, 0);
-	//RenderMesh(meshList[GEO_DICE], true);
-	//modelStack.PopMatrix();
+	modelStack.PushMatrix();
+	playerPos.translation = Vector3(walkingX, 0, walkingZ);
+	RenderObject(meshList[GEO_DICE], playerPos, true);
+	modelStack.PopMatrix();
 
 	RenderObject(meshList[GEO_NPC_BOB_HEAD], NPCs_transform[NPC_BOB_HEAD], false, true);
 
 	RenderObject(meshList[GEO_ENV_ARCADE_MACHINE_B], obj_transform[ENV_ARCADE_MACHINE_B], false, false);
 
-	//RenderObject(meshList[GEO_ENV_ARCADE_MACHINE_B], objects[GEO_ENV_ARCADE_MACHINE_B]->get_transformation(), false, true);
+	spheree.translation = Vector3(0, 0, 0);
+	RenderObject(meshList[GEO_DICE], spheree, false, true);
+
+	cubee.translation = Vector3(8, 0, 5);
+	cubee.scaling = Vector3(2, 2, 2);
+	RenderObject(meshList[GEO_CUBE], cubee, false, true);
 
 	modelStack.PushMatrix();
 	//scale, translate, rotate
+	modelStack.Translate(0, 0, 0);
 	RenderText(meshList[GEO_TEXT], "HELLO WORLD", Color(0, 1, 0));
 	modelStack.PopMatrix();
 
 	//No transform needed
-	RenderTextOnScreen(meshList[GEO_TEXT], "Current FPS: " + print_fps(), Color(0, 1, 0), 2, 0, 0);
+	RenderTextOnScreen(meshList[GEO_TEXT], "Current FPS: " + print_fps(), Color(0, 1, 0), 2, 0, 18);
+	RenderTextOnScreen(meshList[GEO_TEXT], std::to_string(sphere->getDistance()), Color(0, 1, 0), 2, 0, 0);
 
+	modelStack.PushMatrix();
+	if (sphere->getCollide() == false) {
+		RenderTextOnScreen(meshList[GEO_TEXT], "Collision false", Color(0, 1, 0), 2, 0, 1);
+	}
+	else {
+		RenderTextOnScreen(meshList[GEO_TEXT], "Collision true", Color(0, 1, 0), 2, 0, 1);
+	}
+	modelStack.PopMatrix();
 }
 
 void SceneText::Exit()
@@ -491,6 +576,8 @@ void SceneText::InitObjs()
 	obj_transform[ENV_COFFEE_CUP].rotationY.angle = 33;
 	obj_transform[ENV_COFFEE_CUP].rotationZ.angle = 0;
 	obj_transform[ENV_COFFEE_CUP].scaling = Vector3(0.8f, 0.8f, 0.8f);
+
+	NPCs_transform[DICE].translation = Vector3(10, 0, 30);
 }
 
 void SceneText::RenderMesh(Mesh* mesh, bool enableLight)
@@ -586,6 +673,56 @@ void SceneText::RenderObject(Mesh* mesh, transform object, bool hierarchical, bo
 		modelStack.PopMatrix();
 	}
 }
+
+//void SceneText::RenderObjectHierarchial(Mesh* mesh, transform object, bool enableLight)
+//{
+//	modelStack.PushMatrix();
+//	modelStack.Translate(object.translation);
+//	modelStack.Rotate(object.rotationX);
+//	modelStack.Rotate(object.rotationY);
+//	modelStack.Rotate(object.rotationZ);
+//	modelStack.Scale(object.scaling);
+//
+//	Mtx44 MVP, modelView, modelView_inverse_transpose;
+//
+//	MVP = projectionStack.Top() * viewStack.Top() * modelStack.Top();
+//	glUniformMatrix4fv(m_parameters[U_MVP], 1, GL_FALSE, &MVP.a[0]);
+//
+//	modelView = viewStack.Top() * modelStack.Top();
+//	glUniformMatrix4fv(m_parameters[U_MODELVIEW], 1, GL_FALSE, &modelView.a[0]);
+//
+//
+//	if (enableLight)
+//	{
+//		glUniform1i(m_parameters[U_LIGHTENABLED], 1);
+//		modelView_inverse_transpose = modelView.GetInverse().GetTranspose();
+//		glUniformMatrix4fv(m_parameters[U_MODELVIEW_INVERSE_TRANSPOSE], 1, GL_FALSE, &modelView_inverse_transpose.a[0]);
+//
+//		//load material
+//		glUniform3fv(m_parameters[U_MATERIAL_AMBIENT], 1, &mesh->material.kAmbient.r);
+//		glUniform3fv(m_parameters[U_MATERIAL_DIFFUSE], 1, &mesh->material.kDiffuse.r);
+//		glUniform3fv(m_parameters[U_MATERIAL_SPECULAR], 1, &mesh->material.kSpecular.r);
+//		glUniform1f(m_parameters[U_MATERIAL_SHININESS], mesh->material.kShininess);
+//	}
+//	else
+//	{
+//		glUniform1i(m_parameters[U_LIGHTENABLED], 0);
+//	}
+//
+//	if (mesh->textureID > 0) {
+//		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);
+//		glActiveTexture(GL_TEXTURE0);
+//		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
+//		glUniform1i(m_parameters[U_COLOR_TEXTURE], 0);
+//	}
+//	else {
+//		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 0);
+//	}
+//	mesh->Render(); //this line should only be called once in the whole function
+//
+//	if (mesh->textureID > 0) glBindTexture(GL_TEXTURE_2D, 0);
+//
+//}
 
 void SceneText::RenderSkybox()
 {
