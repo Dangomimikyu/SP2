@@ -1,6 +1,5 @@
 #ifndef SCENETEXT_H
 #define SCENETEXT_H
-#define NUM_OBJ 10
 
 #include "Scene.h"
 #include <MatrixStack.h>
@@ -12,7 +11,6 @@
 #include "CPlayer.h"
 #include "CCollision.h"
 #include "CRectangle.h"
-#include "CBezier.h"
 
 class SceneText : public Scene
 {
@@ -27,9 +25,9 @@ class SceneText : public Scene
 		GEO_BACK,
 		GEO_CHAR,
 		GEO_DICE,
-    GEO_CUBE,
 		GEO_LIGHTSPHERE,
 		GEO_TEXT,
+
 		GEO_ENV_ARCADE_BUTTON_EXT,
 		GEO_ENV_ARCADE_BUTTON_INT,
 		GEO_ENV_ARCADE_HEADSET,
@@ -45,6 +43,7 @@ class SceneText : public Scene
 		GEO_ENV_CAR_DISPLAY_PLATFORM_5,
 		GEO_ENV_COFFEE_MACHINE,
 		GEO_ENV_COFFEE_CUP,
+		GEO_ENV_TELEPORTER,
 
 		GEO_NPC_BOB_HEAD,
 		GEO_NPC_BOB_BODY,
@@ -58,6 +57,12 @@ class SceneText : public Scene
 
 	enum NPCs
 	{
+		NPC_BOB,
+		NUM_NPC
+	};
+
+	enum NPC_body
+	{
 		NPC_BOB_HEAD,
 		NPC_BOB_BODY,
 		NPC_BOB_CLAW,
@@ -65,7 +70,7 @@ class SceneText : public Scene
 		NPC_BOB_ARM_LOWER,
 		NPC_BOB_LEG_HIGHER,
 		NPC_BOB_ARM_HIGHER,
-		NUM_NPC
+		NUM_NPC_PARTS
 	};
 
 	enum env_obj
@@ -85,6 +90,7 @@ class SceneText : public Scene
 		ENV_CAR_DISPLAY_PLATFORM_5,
 		ENV_COFFEE_MACHINE,
 		ENV_COFFEE_CUP,
+		ENV_TELEPORTER,
 		NUM_OBJECTS
 	};
 
@@ -134,40 +140,24 @@ private:
 	CEntity* gamer[1];
 	transform gamer_transform[1];
 
-	//NPC NPCs[NUM_NPC];
-	CEntity* NPCs[NUM_NPC];
-	transform NPCs_transform[NUM_NPC * 7];
+	NPC NPCs[NUM_NPC];
+	transform NPCs_transform[NUM_NPC];
 
 	// objects
-	CCollision* objects[10];
+	CCollision* objects[NUM_OBJECTS];
 	transform obj_transform[NUM_OBJECTS];
 
 	transform skybox_transform[6]; // left = 0, right = 1, up = 2, down = 3, front = 4, back = 5
-  
-	CPlayer gamer;
-	CCollision* cube;
-	CCollision* sphere;
 
-	//bezier curve points
-	transform playerPos;
-	transform spheree;
-	transform cubee;
-  
 	Camera2 camera;
-  
-	float walkingX; // remove later
-	float walkingZ; // remove later
 	
-
 	void InitSkybox();
 	void InitLights();
 	void InitNPCs();
 	void InitObjs();
 
 	void RenderMesh(Mesh* mesh, bool enableLight);
-
 	void RenderObject(Mesh* mesh, transform object, bool hierarchical, bool enableLight);
-  
 	void RenderSkybox();
 
 	void RenderText(Mesh* mesh, std::string text, Color color);
