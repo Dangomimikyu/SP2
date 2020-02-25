@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CCOLLISION_H
+#define CCOLLISION_H
 #include "CPlayer.h"
 #include <Vector3.h>
 #include <transformation.h>
@@ -25,3 +26,4 @@ public:
 	virtual void roundCollision(CPlayer, transform, float);
 };
 
+#endif

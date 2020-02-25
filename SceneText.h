@@ -12,7 +12,6 @@
 #include "CPlayer.h"
 #include "CCollision.h"
 #include "CRectangle.h"
-#include "CBezier.h"
 
 class SceneText : public Scene
 {
@@ -30,6 +29,7 @@ class SceneText : public Scene
     GEO_CUBE,
 		GEO_LIGHTSPHERE,
 		GEO_TEXT,
+
 		GEO_ENV_ARCADE_BUTTON_EXT,
 		GEO_ENV_ARCADE_BUTTON_INT,
 		GEO_ENV_ARCADE_HEADSET,
@@ -50,6 +50,7 @@ class SceneText : public Scene
 		GEO_ENV_SIGNPOST_5,
 		GEO_ENV_COFFEE_MACHINE,
 		GEO_ENV_COFFEE_CUP,
+		GEO_ENV_TELEPORTER,
 
 		GEO_NPC_BOB_HEAD,
 		GEO_NPC_BOB_BODY,
@@ -101,6 +102,7 @@ class SceneText : public Scene
 		ENV_SIGNPOST_5,
 		ENV_COFFEE_MACHINE,
 		ENV_COFFEE_CUP,
+		ENV_TELEPORTER,
 		NUM_OBJECTS
 	};
 
@@ -175,16 +177,13 @@ private:
 	float walkingX; // remove later
 	float walkingZ; // remove later
 	
-
 	void InitSkybox();
 	void InitLights();
 	void InitNPCs();
 	void InitObjs();
 
 	void RenderMesh(Mesh* mesh, bool enableLight);
-
 	void RenderObject(Mesh* mesh, transform object, bool hierarchical, bool enableLight);
-  
 	void RenderSkybox();
 
 	void RenderText(Mesh* mesh, std::string text, Color color);
