@@ -1,5 +1,6 @@
 #ifndef SCENETEXT_H
 #define SCENETEXT_H
+#define NUM_OBJ 10
 
 #include "Scene.h"
 #include <MatrixStack.h>
@@ -25,6 +26,7 @@ class SceneText : public Scene
 		GEO_BACK,
 		GEO_CHAR,
 		GEO_DICE,
+    GEO_CUBE,
 		GEO_LIGHTSPHERE,
 		GEO_TEXT,
 
@@ -41,6 +43,11 @@ class SceneText : public Scene
 		GEO_ENV_CAR_DISPLAY_PLATFORM_3,
 		GEO_ENV_CAR_DISPLAY_PLATFORM_4,
 		GEO_ENV_CAR_DISPLAY_PLATFORM_5,
+		GEO_ENV_SIGNPOST_1,
+		GEO_ENV_SIGNPOST_2,
+		GEO_ENV_SIGNPOST_3,
+		GEO_ENV_SIGNPOST_4,
+		GEO_ENV_SIGNPOST_5,
 		GEO_ENV_COFFEE_MACHINE,
 		GEO_ENV_COFFEE_CUP,
 		GEO_ENV_TELEPORTER,
@@ -88,6 +95,11 @@ class SceneText : public Scene
 		ENV_CAR_DISPLAY_PLATFORM_3,
 		ENV_CAR_DISPLAY_PLATFORM_4,
 		ENV_CAR_DISPLAY_PLATFORM_5,
+		ENV_SIGNPOST_1,
+		ENV_SIGNPOST_2,
+		ENV_SIGNPOST_3,
+		ENV_SIGNPOST_4,
+		ENV_SIGNPOST_5,
 		ENV_COFFEE_MACHINE,
 		ENV_COFFEE_CUP,
 		ENV_TELEPORTER,
@@ -137,19 +149,33 @@ private:
 	Light light[1];
 
 	//CPlayer gamer[1];
-	CEntity* gamer[1];
+	//CEntity* gamer[1];
 	transform gamer_transform[1];
 
 	NPC NPCs[NUM_NPC];
-	transform NPCs_transform[NUM_NPC];
+	transform NPCs_transform[NUM_NPC * 7];
 
 	// objects
-	CCollision* objects[NUM_OBJECTS];
+	CCollision* objects[10];
 	transform obj_transform[NUM_OBJECTS];
 
 	transform skybox_transform[6]; // left = 0, right = 1, up = 2, down = 3, front = 4, back = 5
+  
+	CPlayer gamer;
+	CCollision* cube;
+	CCollision* sphere;
 
+	CCollision* carDisplay[5];
+
+	//bezier curve points
+	transform playerPos;
+	transform spheree;
+	transform cubee;
+  
 	Camera2 camera;
+  
+	float walkingX; // remove later
+	float walkingZ; // remove later
 	
 	void InitSkybox();
 	void InitLights();

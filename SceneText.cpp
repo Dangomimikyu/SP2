@@ -26,6 +26,12 @@ SceneText::~SceneText()
 void SceneText::Init()
 {
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+	sphere = new CCollision;
+	cube = new CRectangle;
+
+	for (int i = 0; i < 5; ++i) {
+		carDisplay[i] = new CCollision;
+	}
 
 	// Generate a default VAO for now
 	glGenVertexArrays(1, &m_vertexArrayID);
@@ -91,6 +97,30 @@ void SceneText::Init()
 
 void SceneText::Update(double dt)
 {
+	sphere->set_transformation('t', Vector3(spheree.translation.x, spheree.translation.y, spheree.translation.z));
+	sphere->roundCollision(gamer, playerPos, 1);
+	cube->set_transformation('t', Vector3(8, 0, 5));
+	static_cast<CRectangle*>(cube)->RectCollision(gamer, playerPos, 6.8f, 4.f, 2.3f, 2.f);
+	/*cube.set_transformation('t', Vector3(cubee.translation.x, cubee.translation.y, cubee.translation.z));
+	sphere.roundCollision(gamer, player, 1);
+	cube.roundCollision(gamer, player, 1);*/
+	carDisplay[0]->set_transformation('t', obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].translation);
+	carDisplay[0]->roundCollision(gamer, playerPos, 6);
+
+	carDisplay[1]->set_transformation('t', obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].translation);
+	carDisplay[1]->roundCollision(gamer, playerPos, 6);
+
+	carDisplay[2]->set_transformation('t', obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].translation);
+	carDisplay[2]->roundCollision(gamer, playerPos, 6);
+
+	carDisplay[3]->set_transformation('t', obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].translation);
+	carDisplay[3]->roundCollision(gamer, playerPos, 6);
+
+	carDisplay[4]->set_transformation('t', obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].translation);
+	carDisplay[4]->roundCollision(gamer, playerPos, 6);
+
+	CCollision* objects[7] = {sphere, cube, carDisplay[0], carDisplay[1], carDisplay[2], carDisplay[3], carDisplay[4]};
+
 	if (Application::IsKeyPressed(0x31))
 	{
 		glDisable(GL_CULL_FACE);
@@ -99,7 +129,7 @@ void SceneText::Update(double dt)
 	{
 		glEnable(GL_CULL_FACE);
 	}
-	else if (Application::IsKeyPressed(0x33))
+	else if (Application::IsKeyPressed(0x0))
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
@@ -136,6 +166,65 @@ void SceneText::Update(double dt)
 		light[0].type = Light::LIGHT_SPOT;
 	}
 
+	if (Application::IsKeyPressed('V'))
+	{
+		walkingX -= (float)(20 * dt);
+	}
+	if (Application::IsKeyPressed('N'))
+		walkingX += (float)(20 * dt);
+	if (Application::IsKeyPressed('G'))
+		walkingZ -= (float)(20 * dt);
+	if (Application::IsKeyPressed('B'))
+		walkingZ += (float)(20 * dt);
+	for (int i = 0; i < 7; i++)
+	{
+		/*if (objects[i]->getCollide() == false)
+		{
+			if (Application::IsKeyPressed('V'))
+			{
+				walkingX -= (float)(5 * dt);
+			}
+			if (Application::IsKeyPressed('N'))
+				walkingX += (float)(5 * dt);
+			if (Application::IsKeyPressed('G'))
+				walkingZ -= (float)(5 * dt);
+			if (Application::IsKeyPressed('B'))
+				walkingZ += (float)(5 * dt);
+		}*/
+		if (objects[i]->getCollide() == true /*&& timelapse >= 3*/) {
+			if (Application::IsKeyPressed('V'))
+			{
+				/*player1.position.x += data[i].getoverlap() * (player1.position.x - data[i].getPositionX()) / data[i].getDistance();
+				player1.position.y += data[i].getoverlap() * (player1.position.y - data[i].getPositionZ()) / data[i].getDistance();*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+				/*timelapse = 0;*/
+			}
+			if (Application::IsKeyPressed('N'))
+			{
+				/*player1.position.x -= 1;*/
+				/*timelapse = 0;*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+
+			}
+			if (Application::IsKeyPressed('G'))
+			{
+				/*player1.position.z += 1;*/
+				/*timelapse = 0;*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+
+			}
+			if (Application::IsKeyPressed('B'))
+			{
+				/*player1.position.z -= 1;*/
+				/*timelapse = 0;*/
+				walkingX += objects[i]->getOverlap() * (playerPos.translation.x - objects[i]->get_transformation().translation.x) / objects[i]->getDistance();
+				walkingZ += objects[i]->getOverlap() * (playerPos.translation.z - objects[i]->get_transformation().translation.z) / objects[i]->getDistance();
+      }
+    }
+  }
 	for (int i = 0; i < NUM_NPC; ++i) {
 		if (NPCs[i].get_activity() == "chilling") {
 			// npc stand there
@@ -194,16 +283,33 @@ void SceneText::Render()
 	RenderMesh(meshList[GEO_LIGHTSPHERE], false);
 	modelStack.PopMatrix();
 
-	//modelStack.PushMatrix();
-	//modelStack.Translate(0, -3, 0);
-	//RenderMesh(meshList[GEO_DICE], true);
-	//modelStack.PopMatrix();
+	modelStack.PushMatrix();
+	playerPos.translation = Vector3(walkingX, 0, walkingZ);
+	RenderObject(meshList[GEO_DICE], playerPos, false, true);
+	modelStack.PopMatrix();
 
 	RenderObject(meshList[GEO_NPC_BOB_HEAD], NPCs_transform[NPC_BOB_HEAD], false, true);
 
-	RenderObject(meshList[GEO_ENV_ARCADE_MACHINE_B], obj_transform[ENV_ARCADE_MACHINE_B], false, true);
+	RenderObject(meshList[GEO_ENV_ARCADE_MACHINE_B], obj_transform[ENV_ARCADE_MACHINE_B], false, false);
+	RenderObject(meshList[GEO_ENV_ARCADE_MACHINE_G], obj_transform[ENV_ARCADE_MACHINE_G], false, false);
+	RenderObject(meshList[GEO_ENV_ARCADE_MACHINE_P], obj_transform[ENV_ARCADE_MACHINE_P], false, false);
+	RenderObject(meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1], obj_transform[ENV_CAR_DISPLAY_PLATFORM_1], false, false);
+	RenderObject(meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2], obj_transform[ENV_CAR_DISPLAY_PLATFORM_2], false, false);
+	RenderObject(meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3], obj_transform[ENV_CAR_DISPLAY_PLATFORM_3], false, false);
+	RenderObject(meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4], obj_transform[ENV_CAR_DISPLAY_PLATFORM_4], false, false);
+	RenderObject(meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5], obj_transform[ENV_CAR_DISPLAY_PLATFORM_5], false, false);
+	RenderObject(meshList[GEO_ENV_SIGNPOST_1], obj_transform[ENV_SIGNPOST_1], false, false);
+	RenderObject(meshList[GEO_ENV_SIGNPOST_2], obj_transform[ENV_SIGNPOST_2], false, false);
+	RenderObject(meshList[GEO_ENV_SIGNPOST_3], obj_transform[ENV_SIGNPOST_3], false, false);
+	RenderObject(meshList[GEO_ENV_SIGNPOST_4], obj_transform[ENV_SIGNPOST_4], false, false);
+	RenderObject(meshList[GEO_ENV_SIGNPOST_5], obj_transform[ENV_SIGNPOST_5], false, false);
 
-	RenderObject(meshList[GEO_ENV_TELEPORTER], obj_transform[ENV_TELEPORTER], false, true);
+	spheree.translation = Vector3(0, 0, 0);
+	RenderObject(meshList[GEO_DICE], spheree, false, true);
+
+	cubee.translation = Vector3(8, 0, 5);
+	cubee.scaling = Vector3(2, 2, 2);
+	RenderObject(meshList[GEO_CUBE], cubee, false, true);
 
 	modelStack.PushMatrix();
 	//scale, translate, rotate
@@ -211,8 +317,8 @@ void SceneText::Render()
 	modelStack.PopMatrix();
 
 	//No transform needed
-	RenderTextOnScreen(meshList[GEO_TEXT], "Current FPS: " + print_fps(), Color(0, 1, 0), 2, 0, 0);
-
+	RenderTextOnScreen(meshList[GEO_TEXT], "Current FPS: " + print_fps(), Color(0, 1, 0), 2, 0, 18);
+	RenderTextOnScreen(meshList[GEO_TEXT], std::to_string(sphere->getDistance()), Color(0, 1, 0), 2, 0, 0);
 }
 
 void SceneText::Exit()
@@ -381,11 +487,11 @@ void SceneText::InitObjs()
 	meshList[GEO_ENV_ARCADE_MACHINE_B]->material.kSpecular.Set(1, 1, 1);
 	meshList[GEO_ENV_ARCADE_MACHINE_B]->material.kShininess = 0.6f;
 
-	obj_transform[ENV_ARCADE_MACHINE_B].translation = Vector3(-2.3f, 2.3f, 0);
+	obj_transform[ENV_ARCADE_MACHINE_B].translation = Vector3(-20.f, 0.f, -23);
 	obj_transform[ENV_ARCADE_MACHINE_B].rotationX.angle = 0;
 	obj_transform[ENV_ARCADE_MACHINE_B].rotationY.angle = 0;
 	obj_transform[ENV_ARCADE_MACHINE_B].rotationZ.angle = 0;
-	obj_transform[ENV_ARCADE_MACHINE_B].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	obj_transform[ENV_ARCADE_MACHINE_B].scaling = Vector3(2.f, 2.f, 2.f);
 	
 	meshList[GEO_ENV_ARCADE_MACHINE_G] = MeshBuilder::GenerateOBJ("arcade machine green", "obj//Arcade Machine.obj");
 	meshList[GEO_ENV_ARCADE_MACHINE_G]->textureID = LoadTGA("Image//Arcade Machine Green.tga");
@@ -395,11 +501,11 @@ void SceneText::InitObjs()
 	meshList[GEO_ENV_ARCADE_MACHINE_G]->material.kSpecular.Set(1, 1, 1);
 	meshList[GEO_ENV_ARCADE_MACHINE_G]->material.kShininess = 0.6f;
 
-	obj_transform[ENV_ARCADE_MACHINE_G].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_ARCADE_MACHINE_G].translation = Vector3(-15.f, 0.f, -23.f);
 	obj_transform[ENV_ARCADE_MACHINE_G].rotationX.angle = 0;
 	obj_transform[ENV_ARCADE_MACHINE_G].rotationY.angle = 0;
 	obj_transform[ENV_ARCADE_MACHINE_G].rotationZ.angle = 0;
-	obj_transform[ENV_ARCADE_MACHINE_G].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	obj_transform[ENV_ARCADE_MACHINE_G].scaling = Vector3(2.f, 2.f, 2.f);
 	
 	meshList[GEO_ENV_ARCADE_MACHINE_P] = MeshBuilder::GenerateOBJ("arcade machine purple", "obj//Arcade Machine.obj");
 	meshList[GEO_ENV_ARCADE_MACHINE_P]->textureID = LoadTGA("Image//Arcade Machine Purple.tga");
@@ -409,11 +515,11 @@ void SceneText::InitObjs()
 	meshList[GEO_ENV_ARCADE_MACHINE_P]->material.kSpecular.Set(1, 1, 1);
 	meshList[GEO_ENV_ARCADE_MACHINE_P]->material.kShininess = 0.6f;
 
-	obj_transform[ENV_ARCADE_MACHINE_P].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_ARCADE_MACHINE_P].translation = Vector3(-10.f, 0.f, -23.f);
 	obj_transform[ENV_ARCADE_MACHINE_P].rotationX.angle = 0;
 	obj_transform[ENV_ARCADE_MACHINE_P].rotationY.angle = 0;
 	obj_transform[ENV_ARCADE_MACHINE_P].rotationZ.angle = 0;
-	obj_transform[ENV_ARCADE_MACHINE_P].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	obj_transform[ENV_ARCADE_MACHINE_P].scaling = Vector3(2.f, 2.f, 2.f);
 
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1] = MeshBuilder::GenerateOBJ("car platform 1", "obj//Car Stand Display.obj");
 	//meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1]->textureID = LoadTGA("Image//Car Stand Platform.tga");
@@ -422,11 +528,11 @@ void SceneText::InitObjs()
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1]->material.kSpecular.Set(1, 1, 1);
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1]->material.kShininess = 0.6f;
 
-	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].translation = Vector3(-28, -1, -6);
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].rotationX.angle = 0;
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].rotationY.angle = 0;
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].rotationZ.angle = 0;
-	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].scaling = Vector3(3.f, 3.f, 3.f);
 
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2] = MeshBuilder::GenerateOBJ("car platform 2", "obj//Car Stand Display.obj");
 	//meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2]->textureID = LoadTGA("Image//Car Stand Platform.tga");
@@ -435,11 +541,11 @@ void SceneText::InitObjs()
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2]->material.kSpecular.Set(1, 1, 1);
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2]->material.kShininess = 0.6f;
 
-	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].translation = Vector3(-28, -1, 12);
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].rotationX.angle = 0;
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].rotationY.angle = 0;
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].rotationZ.angle = 0;
-	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].scaling = Vector3(3.f, 3.f, 3.f);
 
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3] = MeshBuilder::GenerateOBJ("car platform 3", "obj//Car Stand Display.obj");
 	//meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3]->textureID = LoadTGA("Image//Car Stand Platform.tga");
@@ -448,11 +554,11 @@ void SceneText::InitObjs()
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3]->material.kSpecular.Set(1, 1, 1);
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3]->material.kShininess = 0.6f;
 
-	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].translation = Vector3(28, -1, 17);
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].rotationX.angle = 0;
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].rotationY.angle = 0;
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].rotationZ.angle = 0;
-	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].scaling = Vector3(3.f, 3.f, 3.f);
 
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4] = MeshBuilder::GenerateOBJ("car platform 4", "obj//Car Stand Display.obj");
 	//meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4]->textureID = LoadTGA("Image//Car Stand Platform.tga");
@@ -461,11 +567,11 @@ void SceneText::InitObjs()
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4]->material.kSpecular.Set(1, 1, 1);
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4]->material.kShininess = 0.6f;
 
-	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].translation = Vector3(28, -1, 1);
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].rotationX.angle = 0;
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].rotationY.angle = 0;
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].rotationZ.angle = 0;
-	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].scaling = Vector3(3.f, 3.f, 3.f);
 
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5] = MeshBuilder::GenerateOBJ("car platform 5", "obj//Car Stand Display.obj");
 	//meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5]->textureID = LoadTGA("Image//Car Stand Platform.tga");
@@ -473,12 +579,12 @@ void SceneText::InitObjs()
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5]->material.kDiffuse.Set(1, 1, 1);
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5]->material.kSpecular.Set(1, 1, 1);
 	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5]->material.kShininess = 0.6f;
-
-	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].translation = Vector3(2, -14, 0);
+  
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].translation = Vector3(28, -1, -16);
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].rotationX.angle = 0;
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].rotationY.angle = 0;
 	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].rotationZ.angle = 0;
-	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].scaling = Vector3(3.f, 3.f, 3.f);
 
 	meshList[GEO_ENV_COFFEE_MACHINE] = MeshBuilder::GenerateOBJ("coffee machine", "obj//Coffee Machine.obj");
 	//meshList[GEO_ENV_COFFEE_MACHINE]->textureID = LoadTGA("Image//Coffee Machine.tga");
@@ -506,6 +612,66 @@ void SceneText::InitObjs()
 	obj_transform[ENV_COFFEE_CUP].rotationZ.angle = 0;
 	obj_transform[ENV_COFFEE_CUP].scaling = Vector3(0.8f, 0.8f, 0.8f);
 
+	meshList[GEO_ENV_SIGNPOST_1] = MeshBuilder::GenerateOBJ("signpost1", "obj//Signpost.obj");
+	meshList[GEO_ENV_SIGNPOST_1]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_1]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_1]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_1]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_SIGNPOST_1].translation = Vector3(-20, 0, -10);
+	obj_transform[ENV_SIGNPOST_1].rotationX.angle = 0;
+	obj_transform[ENV_SIGNPOST_1].rotationY.angle = 0;
+	obj_transform[ENV_SIGNPOST_1].rotationZ.angle = 0;
+	obj_transform[ENV_SIGNPOST_1].scaling = Vector3(2.f, 2.f, 2.f);
+
+	meshList[GEO_ENV_SIGNPOST_2] = MeshBuilder::GenerateOBJ("signpost2", "obj//Signpost.obj");
+	meshList[GEO_ENV_SIGNPOST_2]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_2]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_2]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_2]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_SIGNPOST_2].translation = Vector3(-20, 0, 8.f);
+	obj_transform[ENV_SIGNPOST_2].rotationX.angle = 0;
+	obj_transform[ENV_SIGNPOST_2].rotationY.angle = 0;
+	obj_transform[ENV_SIGNPOST_2].rotationZ.angle = 0;
+	obj_transform[ENV_SIGNPOST_2].scaling = Vector3(2.f, 2.f, 2.f);
+
+	meshList[GEO_ENV_SIGNPOST_3] = MeshBuilder::GenerateOBJ("signpost3", "obj//Signpost.obj");
+	meshList[GEO_ENV_SIGNPOST_3]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_3]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_3]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_3]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_SIGNPOST_3].translation = Vector3(20, 0, 20.f);
+	obj_transform[ENV_SIGNPOST_3].rotationX.angle = 0;
+	obj_transform[ENV_SIGNPOST_3].rotationY.angle = 180;
+	obj_transform[ENV_SIGNPOST_3].rotationZ.angle = 0;
+	obj_transform[ENV_SIGNPOST_3].scaling = Vector3(2.f, 2.f, 2.f);
+
+	meshList[GEO_ENV_SIGNPOST_4] = MeshBuilder::GenerateOBJ("signpost4", "obj//Signpost.obj");
+	meshList[GEO_ENV_SIGNPOST_4]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_4]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_4]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_4]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_SIGNPOST_4].translation = Vector3(20, 0, 5.f);
+	obj_transform[ENV_SIGNPOST_4].rotationX.angle = 0;
+	obj_transform[ENV_SIGNPOST_4].rotationY.angle = 180;
+	obj_transform[ENV_SIGNPOST_4].rotationZ.angle = 0;
+	obj_transform[ENV_SIGNPOST_4].scaling = Vector3(2.f, 2.f, 2.f);
+
+	meshList[GEO_ENV_SIGNPOST_5] = MeshBuilder::GenerateOBJ("signpost4", "obj//Signpost.obj");
+	meshList[GEO_ENV_SIGNPOST_5]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_5]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_5]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_SIGNPOST_5]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_SIGNPOST_5].translation = Vector3(20, 0, -10.f);
+	obj_transform[ENV_SIGNPOST_5].rotationX.angle = 0;
+	obj_transform[ENV_SIGNPOST_5].rotationY.angle = 180;
+	obj_transform[ENV_SIGNPOST_5].rotationZ.angle = 0;
+	obj_transform[ENV_SIGNPOST_5].scaling = Vector3(2.f, 2.f, 2.f);
+  
 	meshList[GEO_ENV_TELEPORTER] = MeshBuilder::GenerateOBJ("teleporter", "obj//Teleporter.obj");
 	meshList[GEO_ENV_TELEPORTER]->textureID = LoadTGA("Image//teleporter.tga");
 	meshList[GEO_ENV_TELEPORTER]->material.kAmbient.Set(1, 1, 1);
@@ -614,25 +780,30 @@ void SceneText::RenderObject(Mesh* mesh, transform object, bool hierarchical, bo
 	}
 }
 
+	if (!hierarchical) {
+		modelStack.PopMatrix();
+	}
+}
+
 void SceneText::RenderSkybox()
 {
 	modelStack.PushMatrix();
-		skybox_transform[0].translation = Vector3(-5.f, 5.f, 0);
-		skybox_transform[0].scaling = Vector3(50.f, 50.f, 50.f);
+		skybox_transform[0].translation = Vector3(-37.5f, 12.5f, 0);
+		skybox_transform[0].scaling = Vector3(50.f, 25.f, 50.f);
 		skybox_transform[0].rotationY.angle = 90;
 		RenderObject(meshList[GEO_LEFT], skybox_transform[0], false, false);
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix();
-		skybox_transform[1].translation = Vector3(5.f, 5.f, 0);
-		skybox_transform[1].scaling = Vector3(50.f, 50.f, 50.f);
+		skybox_transform[1].translation = Vector3(37.5f, 12.5f, 0);
+		skybox_transform[1].scaling = Vector3(50.f, 25.f, 50.f);
 		skybox_transform[1].rotationY.angle = -90;
 		RenderObject(meshList[GEO_RIGHT], skybox_transform[1], false, false);
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix();
-		skybox_transform[2].translation = Vector3(0, 10.f, 0);
-		skybox_transform[2].scaling = Vector3(50.f, 50.f, 50.f);
+		skybox_transform[2].translation = Vector3(0, 25.f, 0);
+		skybox_transform[2].scaling = Vector3(50.f, 75.f, 50.f);
 		skybox_transform[2].rotationX.angle = 90;
 		skybox_transform[2].rotationZ.angle = 90;
 		RenderObject(meshList[GEO_TOP], skybox_transform[2], false, false);
@@ -640,21 +811,21 @@ void SceneText::RenderSkybox()
 
 	modelStack.PushMatrix();
 		//skybox_transform[3].translation = Vector3(0, 0, 0);
-		skybox_transform[3].scaling = Vector3(50.f, 50.f, 50.f);
 		skybox_transform[3].rotationX.angle = -90;
 		skybox_transform[3].rotationZ.angle = 90;
+		skybox_transform[3].scaling = Vector3(50.f, 75.f, 50.f);
 		RenderObject(meshList[GEO_BOTTOM], skybox_transform[3], false, false);
 	modelStack.PopMatrix();
 	
 	modelStack.PushMatrix();
-		skybox_transform[4].translation = Vector3(0, 5.f, -5.f);
-		skybox_transform[4].scaling = Vector3(50.f, 50.f, 50.f);
+		skybox_transform[4].translation = Vector3(0, 12.5f, -25.f);
+		skybox_transform[4].scaling = Vector3(75.f, 25.f, 50.f);
 		RenderObject(meshList[GEO_FRONT], skybox_transform[4], false, false);
 	modelStack.PopMatrix();
 	
 	modelStack.PushMatrix();
-		skybox_transform[5].translation = Vector3(0, 5.f, 5.f);
-		skybox_transform[5].scaling = Vector3(50.f, 50.f, 50.f);
+		skybox_transform[5].translation = Vector3(0, 12.5f, 25.f);
+		skybox_transform[5].scaling = Vector3(75.f, 25.f, 50.f);
 		skybox_transform[5].rotationY.angle = 180;
 		RenderObject(meshList[GEO_BACK], skybox_transform[5], false, false);
 	modelStack.PopMatrix();
