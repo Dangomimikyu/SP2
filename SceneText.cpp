@@ -7,7 +7,6 @@
 #include "Utility.h"
 #include "LoadTGA.h"
 
-
 #define ROT_LIMIT 45.f;
 #define SCALE_LIMIT 5.f;
 #define LSPEED 10.f
@@ -39,11 +38,11 @@ void SceneText::Init()
 	glGenVertexArrays(1, &m_vertexArrayID);
 	glBindVertexArray(m_vertexArrayID);
 	glEnable(GL_CULL_FACE);
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	camera.Init(Vector3(0, 0, 10), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	camera.Init(Vector3(0, 0.2f, 4), Vector3(0, 0.2f, 0), Vector3(0, 1, 0));
+	//camera.Init(Vector3(0, 0.2f, 4), gamer_transform[0].translation, Vector3(0, 1, 0)); // for when we have the actual player and can keep track of their location to point the camera at them
 
 	Mtx44 projection;
 	projection.SetToPerspective(45.f, 4.f / 3.f, 0.1f, 1000.f);
@@ -81,6 +80,11 @@ void SceneText::Init()
 
 	// init NPCs
 	InitNPCs();
+
+	// init player
+
+	// init objects
+	InitObjs();
 
 	meshList[GEO_CHAR] = MeshBuilder::GenerateQuad("char", Color(1, 1, 1), 1.f, 1.f);
 	meshList[GEO_CHAR]->textureID = LoadTGA("Image//char.tga");
@@ -201,10 +205,7 @@ void SceneText::Update(double dt)
 			}
 		}
 	}
-
 	camera.Update(dt);
-	
-
 }
 
 void SceneText::Render()
@@ -250,21 +251,16 @@ void SceneText::Render()
 	RenderObject(meshList[GEO_DICE], playerPos, true);
 	modelStack.PopMatrix();
 
-	modelStack.PushMatrix();
-	spheree.translation = Vector3(0, 0, 0);
-	RenderObject(meshList[GEO_DICE], spheree, true);
-	modelStack.PopMatrix();
+	RenderObject(meshList[GEO_NPC_BOB_HEAD], NPCs_transform[NPC_BOB_HEAD], false, true);
 
-	modelStack.PushMatrix();
+	RenderObject(meshList[GEO_ENV_ARCADE_MACHINE_B], obj_transform[ENV_ARCADE_MACHINE_B], false, false);
+
+	spheree.translation = Vector3(0, 0, 0);
+	RenderObject(meshList[GEO_DICE], spheree, false, true);
+
 	cubee.translation = Vector3(8, 0, 5);
 	cubee.scaling = Vector3(2, 2, 2);
-	RenderObject(meshList[GEO_CUBE], cubee, true);
-	modelStack.PopMatrix();
-
-	/*modelStack.PushMatrix();
-	RenderObject(meshList[NPC_BOB], NPCs_transform[NPC_BOB], true);
-	modelStack.PopMatrix();*/
-
+	RenderObject(meshList[GEO_CUBE], cubee, false, true);
 
 	modelStack.PushMatrix();
 	//scale, translate, rotate
@@ -273,6 +269,7 @@ void SceneText::Render()
 	modelStack.PopMatrix();
 
 	//No transform needed
+	RenderTextOnScreen(meshList[GEO_TEXT], "Current FPS: " + print_fps(), Color(0, 1, 0), 2, 0, 18);
 	RenderTextOnScreen(meshList[GEO_TEXT], std::to_string(sphere->getDistance()), Color(0, 1, 0), 2, 0, 0);
 
 	modelStack.PushMatrix();
@@ -301,23 +298,23 @@ void SceneText::Exit()
 
 void SceneText::InitSkybox()
 {
-	meshList[GEO_LEFT] = MeshBuilder::GenerateQuad("left", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_LEFT]->textureID = LoadTGA("Image//left.tga");
+	meshList[GEO_LEFT] = MeshBuilder::GenerateQuad("left", Color(1, 1, 1), 1.01f, 1.01f);
+	meshList[GEO_LEFT]->textureID = LoadTGA("Image//Building Interior.tga");
 
-	meshList[GEO_RIGHT] = MeshBuilder::GenerateQuad("right", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_RIGHT]->textureID = LoadTGA("Image//right.tga");
+	meshList[GEO_RIGHT] = MeshBuilder::GenerateQuad("right", Color(1, 1, 1), 1.01f, 1.01f);
+	meshList[GEO_RIGHT]->textureID = LoadTGA("Image//Building Interior.tga");
 
-	meshList[GEO_TOP] = MeshBuilder::GenerateQuad("top", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_TOP]->textureID = LoadTGA("Image//top.tga");
+	meshList[GEO_TOP] = MeshBuilder::GenerateQuad("top", Color(1, 1, 1), 1.01f, 1.01f);
+	meshList[GEO_TOP]->textureID = LoadTGA("Image//Building Interior.tga");
 
-	meshList[GEO_BOTTOM] = MeshBuilder::GenerateQuad("bottom", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_BOTTOM]->textureID = LoadTGA("Image//bottom.tga");
+	meshList[GEO_BOTTOM] = MeshBuilder::GenerateQuad("bottom", Color(1, 1, 1), 1.01f, 1.01f);
+	meshList[GEO_BOTTOM]->textureID = LoadTGA("Image//Building Floor.tga");
 
-	meshList[GEO_FRONT] = MeshBuilder::GenerateQuad("front", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_FRONT]->textureID = LoadTGA("Image//front.tga");
+	meshList[GEO_FRONT] = MeshBuilder::GenerateQuad("front", Color(1, 1, 1), 1.01f, 1.01f);
+	meshList[GEO_FRONT]->textureID = LoadTGA("Image//Building Interior.tga");
 
-	meshList[GEO_BACK] = MeshBuilder::GenerateQuad("back", Color(1, 1, 1), 1.f, 1.f);
-	meshList[GEO_BACK]->textureID = LoadTGA("Image//back.tga");
+	meshList[GEO_BACK] = MeshBuilder::GenerateQuad("back", Color(1, 1, 1), 1.01f, 1.01f);
+	meshList[GEO_BACK]->textureID = LoadTGA("Image//Building Interior.tga");
 }
 
 void SceneText::InitLights()
@@ -363,25 +360,222 @@ void SceneText::InitLights()
 
 void SceneText::InitNPCs()
 {
-	meshList[NPC_BOB] = MeshBuilder::GenerateOBJ("NPC", "obj//gary.obj");
-	meshList[NPC_BOB]->material.kAmbient.Set(1, 1, 1);
-	meshList[NPC_BOB]->material.kDiffuse.Set(1, 1, 1);
-	meshList[NPC_BOB]->material.kSpecular.Set(1, 1, 1);
-	meshList[NPC_BOB]->material.kShininess = 0.6f;
+	for (int i = 0; i < NUM_NPC; ++i) {
+		NPCs[i] = new NPC();
+	}
 
-	NPCs_transform[NPC_BOB].translation = Vector3(5, 0, 0);
-	NPCs_transform[NPC_BOB].rotationX.angle = 90;
-	NPCs_transform[NPC_BOB].rotationY.angle = 33;
-	NPCs_transform[NPC_BOB].rotationZ.angle = 0;
-	NPCs_transform[NPC_BOB].scaling = Vector3(1.f, 1.f, 1.f);
+	meshList[GEO_NPC_BOB_HEAD] = MeshBuilder::GenerateOBJ("NPC", "obj//gary.obj");
+	meshList[GEO_NPC_BOB_HEAD]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_NPC_BOB_HEAD]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_NPC_BOB_HEAD]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_NPC_BOB_HEAD]->material.kShininess = 0.6f;
 
-	/*modelStack.PushMatrix();
-	///scale, translate, rotate 
-	modelStack.Translate(-50.f, 0.f, 0.f);
-	modelStack.Scale(1.f, 1.f, 1.f);
-	modelStack.Rotate(90.f, 0.f, 1.f, 0.f);
-	RenderMesh(meshList[NPC_BOB], false);
-	modelStack.PopMatrix();*/
+	NPCs_transform[NPC_BOB_HEAD].translation = Vector3(5, 0, 0);
+	NPCs_transform[NPC_BOB_HEAD].rotationX.angle = 0;
+	NPCs_transform[NPC_BOB_HEAD].rotationY.angle = 0;
+	NPCs_transform[NPC_BOB_HEAD].rotationZ.angle = 0;
+	NPCs_transform[NPC_BOB_HEAD].scaling = Vector3(0.8f, 0.8f, 0.8f);
+}
+
+void SceneText::InitObjs()
+{
+	meshList[GEO_ENV_ARCADE_BUTTON_EXT] = MeshBuilder::GenerateOBJ("arcade button exterior", "obj//Arcade Button_Exterior.obj");
+	//meshList[GEO_ENV_ARCADE_BUTTON_EXT]->textureID = LoadTGA("Image//");
+	meshList[GEO_ENV_ARCADE_BUTTON_EXT]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_BUTTON_EXT]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_BUTTON_EXT]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_BUTTON_EXT]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_ARCADE_BUTTON_EXT].translation = Vector3(-2.5, 0, -2.5);
+	obj_transform[ENV_ARCADE_BUTTON_EXT].rotationX.angle = 0;
+	obj_transform[ENV_ARCADE_BUTTON_EXT].rotationY.angle = 90;
+	obj_transform[ENV_ARCADE_BUTTON_EXT].rotationZ.angle = 0;
+	obj_transform[ENV_ARCADE_BUTTON_EXT].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	
+	meshList[GEO_ENV_ARCADE_BUTTON_INT] = MeshBuilder::GenerateOBJ("arcade button exterior", "obj//Arcade Button_Interior.obj");
+	//meshList[GEO_ENV_ARCADE_BUTTON_INT]->textureID = LoadTGA("Image//");
+	meshList[GEO_ENV_ARCADE_BUTTON_INT]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_BUTTON_INT]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_BUTTON_INT]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_BUTTON_INT]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_ARCADE_BUTTON_INT].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_ARCADE_BUTTON_INT].rotationX.angle = 90;
+	obj_transform[ENV_ARCADE_BUTTON_INT].rotationY.angle = 33;
+	obj_transform[ENV_ARCADE_BUTTON_INT].rotationZ.angle = 0;
+	obj_transform[ENV_ARCADE_BUTTON_INT].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	
+	meshList[GEO_ENV_ARCADE_HEADSET] = MeshBuilder::GenerateOBJ("headset", "obj//Arcade VR Headset.obj");
+	//meshList[GEO_ENV_ARCADE_HEADSET]->textureID = LoadTGA("Image//");
+	meshList[GEO_ENV_ARCADE_HEADSET]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_HEADSET]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_HEADSET]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_HEADSET]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_ARCADE_HEADSET].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_ARCADE_HEADSET].rotationX.angle = 90;
+	obj_transform[ENV_ARCADE_HEADSET].rotationY.angle = 33;
+	obj_transform[ENV_ARCADE_HEADSET].rotationZ.angle = 0;
+	obj_transform[ENV_ARCADE_HEADSET].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	
+	meshList[GEO_ENV_JOYSTICK_BASE] = MeshBuilder::GenerateOBJ("joystick base", "obj//Joystick_Base.obj");
+	meshList[GEO_ENV_JOYSTICK_BASE]->textureID = LoadTGA("Image//Joystick_Base.tga");
+	meshList[GEO_ENV_JOYSTICK_BASE]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_JOYSTICK_BASE]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_JOYSTICK_BASE]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_JOYSTICK_BASE]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_JOYSTICK_BASE].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_JOYSTICK_BASE].rotationX.angle = 90;
+	obj_transform[ENV_JOYSTICK_BASE].rotationY.angle = 33;
+	obj_transform[ENV_JOYSTICK_BASE].rotationZ.angle = 0;
+	obj_transform[ENV_JOYSTICK_BASE].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	
+	meshList[GEO_ENV_JOYSTICK_CONTROLLER] = MeshBuilder::GenerateOBJ("joystick control", "obj//Joystick_Control.obj");
+	meshList[GEO_ENV_JOYSTICK_CONTROLLER]->textureID = LoadTGA("Image//Joystick_Control.tga");
+	meshList[GEO_ENV_JOYSTICK_CONTROLLER]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_JOYSTICK_CONTROLLER]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_JOYSTICK_CONTROLLER]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_JOYSTICK_CONTROLLER]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_JOYSTICK_CONTROLLER].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_JOYSTICK_CONTROLLER].rotationX.angle = 90;
+	obj_transform[ENV_JOYSTICK_CONTROLLER].rotationY.angle = 33;
+	obj_transform[ENV_JOYSTICK_CONTROLLER].rotationZ.angle = 0;
+	obj_transform[ENV_JOYSTICK_CONTROLLER].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	
+	meshList[GEO_ENV_ARCADE_MACHINE_B] = MeshBuilder::GenerateOBJ("arcade machine blue", "obj//Arcade Machine.obj");
+	meshList[GEO_ENV_ARCADE_MACHINE_B]->textureID = LoadTGA("Image//Arcade Machine Blue.tga");
+	//objects[ENV_ARCADE_MACHINE_B] = new CRectangle();
+	meshList[GEO_ENV_ARCADE_MACHINE_B]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_MACHINE_B]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_MACHINE_B]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_MACHINE_B]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_ARCADE_MACHINE_B].translation = Vector3(-2.3f, 2.3f, 0);
+	obj_transform[ENV_ARCADE_MACHINE_B].rotationX.angle = 0;
+	obj_transform[ENV_ARCADE_MACHINE_B].rotationY.angle = 0;
+	obj_transform[ENV_ARCADE_MACHINE_B].rotationZ.angle = 0;
+	obj_transform[ENV_ARCADE_MACHINE_B].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	
+	meshList[GEO_ENV_ARCADE_MACHINE_G] = MeshBuilder::GenerateOBJ("arcade machine green", "obj//Arcade Machine.obj");
+	meshList[GEO_ENV_ARCADE_MACHINE_G]->textureID = LoadTGA("Image//Arcade Machine Green.tga");
+	//objects[ENV_ARCADE_MACHINE_G] = new CRectangle();
+	meshList[GEO_ENV_ARCADE_MACHINE_G]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_MACHINE_G]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_MACHINE_G]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_MACHINE_G]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_ARCADE_MACHINE_G].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_ARCADE_MACHINE_G].rotationX.angle = 90;
+	obj_transform[ENV_ARCADE_MACHINE_G].rotationY.angle = 33;
+	obj_transform[ENV_ARCADE_MACHINE_G].rotationZ.angle = 0;
+	obj_transform[ENV_ARCADE_MACHINE_G].scaling = Vector3(0.8f, 0.8f, 0.8f);
+	
+	meshList[GEO_ENV_ARCADE_MACHINE_P] = MeshBuilder::GenerateOBJ("arcade machine purple", "obj//Arcade Machine.obj");
+	meshList[GEO_ENV_ARCADE_MACHINE_P]->textureID = LoadTGA("Image//Arcade Machine Purple.tga");
+	//objects[ENV_ARCADE_MACHINE_P] = new CRectangle();
+	meshList[GEO_ENV_ARCADE_MACHINE_P]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_MACHINE_P]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_MACHINE_P]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_ARCADE_MACHINE_P]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_ARCADE_MACHINE_P].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_ARCADE_MACHINE_P].rotationX.angle = 90;
+	obj_transform[ENV_ARCADE_MACHINE_P].rotationY.angle = 33;
+	obj_transform[ENV_ARCADE_MACHINE_P].rotationZ.angle = 0;
+	obj_transform[ENV_ARCADE_MACHINE_P].scaling = Vector3(0.8f, 0.8f, 0.8f);
+
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1] = MeshBuilder::GenerateOBJ("car platform 1", "obj//Car Stand Display.obj");
+	//meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1]->textureID = LoadTGA("Image//Car Stand Platform.tga");
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_1]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].rotationX.angle = 90;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].rotationY.angle = 33;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].rotationZ.angle = 0;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].scaling = Vector3(0.8f, 0.8f, 0.8f);
+
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2] = MeshBuilder::GenerateOBJ("car platform 2", "obj//Car Stand Display.obj");
+	//meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2]->textureID = LoadTGA("Image//Car Stand Platform.tga");
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_2]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].rotationX.angle = 90;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].rotationY.angle = 33;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].rotationZ.angle = 0;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_2].scaling = Vector3(0.8f, 0.8f, 0.8f);
+
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3] = MeshBuilder::GenerateOBJ("car platform 3", "obj//Car Stand Display.obj");
+	//meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3]->textureID = LoadTGA("Image//Car Stand Platform.tga");
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_3]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].rotationX.angle = 90;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].rotationY.angle = 33;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].rotationZ.angle = 0;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_3].scaling = Vector3(0.8f, 0.8f, 0.8f);
+
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4] = MeshBuilder::GenerateOBJ("car platform 4", "obj//Car Stand Display.obj");
+	//meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4]->textureID = LoadTGA("Image//Car Stand Platform.tga");
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_4]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].rotationX.angle = 90;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].rotationY.angle = 33;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].rotationZ.angle = 0;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_4].scaling = Vector3(0.8f, 0.8f, 0.8f);
+
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5] = MeshBuilder::GenerateOBJ("car platform 5", "obj//Car Stand Display.obj");
+	//meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5]->textureID = LoadTGA("Image//Car Stand Platform.tga");
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_CAR_DISPLAY_PLATFORM_5]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].rotationX.angle = 90;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].rotationY.angle = 33;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].rotationZ.angle = 0;
+	obj_transform[ENV_CAR_DISPLAY_PLATFORM_5].scaling = Vector3(0.8f, 0.8f, 0.8f);
+
+	meshList[GEO_ENV_COFFEE_MACHINE] = MeshBuilder::GenerateOBJ("coffee machine", "obj//Coffee Machine.obj");
+	//meshList[GEO_ENV_COFFEE_MACHINE]->textureID = LoadTGA("Image//Coffee Machine.tga");
+	meshList[GEO_ENV_COFFEE_MACHINE]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_COFFEE_MACHINE]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_COFFEE_MACHINE]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_COFFEE_MACHINE]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_COFFEE_MACHINE].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_COFFEE_MACHINE].rotationX.angle = 90;
+	obj_transform[ENV_COFFEE_MACHINE].rotationY.angle = 33;
+	obj_transform[ENV_COFFEE_MACHINE].rotationZ.angle = 0;
+	obj_transform[ENV_COFFEE_MACHINE].scaling = Vector3(0.8f, 0.8f, 0.8f);
+
+	meshList[GEO_ENV_COFFEE_CUP] = MeshBuilder::GenerateOBJ("coffee cup", "obj//Coffee Cup.obj");
+	//meshList[GEO_ENV_COFFEE_CUP]->textureID = LoadTGA("Image//Coffee Cup_Silver.tga");
+	meshList[GEO_ENV_COFFEE_CUP]->material.kAmbient.Set(1, 1, 1);
+	meshList[GEO_ENV_COFFEE_CUP]->material.kDiffuse.Set(1, 1, 1);
+	meshList[GEO_ENV_COFFEE_CUP]->material.kSpecular.Set(1, 1, 1);
+	meshList[GEO_ENV_COFFEE_CUP]->material.kShininess = 0.6f;
+
+	obj_transform[ENV_COFFEE_CUP].translation = Vector3(2, -14, 0);
+	obj_transform[ENV_COFFEE_CUP].rotationX.angle = 90;
+	obj_transform[ENV_COFFEE_CUP].rotationY.angle = 33;
+	obj_transform[ENV_COFFEE_CUP].rotationZ.angle = 0;
+	obj_transform[ENV_COFFEE_CUP].scaling = Vector3(0.8f, 0.8f, 0.8f);
 
 	NPCs_transform[DICE].translation = Vector3(10, 0, 30);
 }
@@ -427,8 +621,9 @@ void SceneText::RenderMesh(Mesh* mesh, bool enableLight)
 	if(mesh->textureID > 0) glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void SceneText::RenderObject(Mesh* mesh, transform object, bool enableLight)
+void SceneText::RenderObject(Mesh* mesh, transform object, bool hierarchical, bool enableLight)
 {
+	modelStack.PushMatrix();
 	modelStack.Translate(object.translation);
 	modelStack.Rotate(object.rotationX);
 	modelStack.Rotate(object.rotationY);
@@ -473,6 +668,10 @@ void SceneText::RenderObject(Mesh* mesh, transform object, bool enableLight)
 	mesh->Render(); //this line should only be called once in the whole function
 
 	if (mesh->textureID > 0) glBindTexture(GL_TEXTURE_2D, 0);
+
+	if (!hierarchical) {
+		modelStack.PopMatrix();
+	}
 }
 
 //void SceneText::RenderObjectHierarchial(Mesh* mesh, transform object, bool enableLight)
@@ -528,51 +727,46 @@ void SceneText::RenderObject(Mesh* mesh, transform object, bool enableLight)
 void SceneText::RenderSkybox()
 {
 	modelStack.PushMatrix();
-		///scale, translate, rotate 
-		modelStack.Translate(-50.f, 0.f, 0.f);
-		modelStack.Scale(100.f, 100.f, 100.f);
-		modelStack.Rotate(90.f, 0.f, 1.f, 0.f);
-		RenderMesh(meshList[GEO_LEFT], false);
+		skybox_transform[0].translation = Vector3(-5.f, 5.f, 0);
+		skybox_transform[0].scaling = Vector3(50.f, 50.f, 50.f);
+		skybox_transform[0].rotationY.angle = 90;
+		RenderObject(meshList[GEO_LEFT], skybox_transform[0], false, false);
 	modelStack.PopMatrix();
+
 	modelStack.PushMatrix();
-		///scale, translate, rotate 
-		modelStack.Translate(50.f, 0.f, 0.f);
-		modelStack.Scale(100.f, 100.f, 100.f);
-		modelStack.Rotate(-90.f, 0.f, 1.f, 0.f);
-		RenderMesh(meshList[GEO_RIGHT], false);
+		skybox_transform[1].translation = Vector3(5.f, 5.f, 0);
+		skybox_transform[1].scaling = Vector3(50.f, 50.f, 50.f);
+		skybox_transform[1].rotationY.angle = -90;
+		RenderObject(meshList[GEO_RIGHT], skybox_transform[1], false, false);
 	modelStack.PopMatrix();
+
 	modelStack.PushMatrix();
-		///scale, translate, rotate 
-		modelStack.Translate(0.f, 50.f, 0.f);
-		modelStack.Scale(100.f, 100.f, 100.f);
-		modelStack.Rotate(90.f, 1.f, 0.f, 0.f);
-		modelStack.PushMatrix();
-			modelStack.Rotate(90.f, 0.f, 0.f, 1.f);
-			RenderMesh(meshList[GEO_TOP], false);
-		modelStack.PopMatrix();
+		skybox_transform[2].translation = Vector3(0, 10.f, 0);
+		skybox_transform[2].scaling = Vector3(50.f, 50.f, 50.f);
+		skybox_transform[2].rotationX.angle = 90;
+		skybox_transform[2].rotationZ.angle = 90;
+		RenderObject(meshList[GEO_TOP], skybox_transform[2], false, false);
 	modelStack.PopMatrix();
+
 	modelStack.PushMatrix();
-		///scale, translate, rotate 
-		modelStack.Translate(0.f, -50.f, 0.f);
-		modelStack.Scale(100.f, 100.f, 100.f);
-		modelStack.Rotate(-90.f, 1.f, 0.f, 0.f);
-		modelStack.PushMatrix();
-		modelStack.Rotate(90.f, 0.f, 0.f, 1.f);
-		RenderMesh(meshList[GEO_BOTTOM], false);
-		modelStack.PopMatrix();
-		modelStack.PopMatrix();
-	modelStack.PushMatrix();
-		///scale, translate, rotate 
-		modelStack.Translate(0.f, 0.f, -50.f);
-		modelStack.Scale(100.f, 100.f, 100.f);
-		RenderMesh(meshList[GEO_FRONT], false);
+		//skybox_transform[3].translation = Vector3(0, 0, 0);
+		skybox_transform[3].scaling = Vector3(50.f, 50.f, 50.f);
+		skybox_transform[3].rotationX.angle = -90;
+		skybox_transform[3].rotationZ.angle = 90;
+		RenderObject(meshList[GEO_BOTTOM], skybox_transform[3], false, false);
 	modelStack.PopMatrix();
+	
 	modelStack.PushMatrix();
-		///scale, translate, rotate 
-		modelStack.Translate(0.f, 0.f, 50.f);
-		modelStack.Scale(100.f, 100.f, 100.f);
-		modelStack.Rotate(180.f, 0.f, 1.f, 0.f);
-		RenderMesh(meshList[GEO_BACK], false);
+		skybox_transform[4].translation = Vector3(0, 5.f, -5.f);
+		skybox_transform[4].scaling = Vector3(50.f, 50.f, 50.f);
+		RenderObject(meshList[GEO_FRONT], skybox_transform[4], false, false);
+	modelStack.PopMatrix();
+	
+	modelStack.PushMatrix();
+		skybox_transform[5].translation = Vector3(0, 5.f, 5.f);
+		skybox_transform[5].scaling = Vector3(50.f, 50.f, 50.f);
+		skybox_transform[5].rotationY.angle = 180;
+		RenderObject(meshList[GEO_BACK], skybox_transform[5], false, false);
 	modelStack.PopMatrix();
 }
 
