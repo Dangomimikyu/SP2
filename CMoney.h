@@ -6,9 +6,8 @@
 class CMoney
 {
 
-private:
-	int money;
 public:
+	static int money;
 
 	CMoney();
 	~CMoney();
@@ -17,9 +16,6 @@ public:
 	int RemoveMoney(int);
 	std::string PrintMoney();
 	bool CheckMoney(int);
-
-	int GetMoney(); // to set for conditions -> if player can afford item A or not
-
 };
 
 #endif

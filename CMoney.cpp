@@ -1,19 +1,13 @@
 #include "CMoney.h"
 
-
+int CMoney::money = 0;
 CMoney::CMoney()
 {
-	money = 0;
 }
 
 CMoney::~CMoney()
 {
 
-}
-
-int CMoney::GetMoney()
-{
-	return money;
 }
 
 int CMoney::AddMoney(int m)
@@ -33,7 +27,7 @@ std::string CMoney::PrintMoney()
 
 bool CMoney::CheckMoney(int m)
 {
-	if (m < 0)
+	if (money < m)
 		return false;
 	else
 		return true;
