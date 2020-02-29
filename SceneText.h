@@ -180,7 +180,6 @@ private:
 	bool NPCinRange; //test purpose
 	int ClosestNPC; //  new
 	bool M_pressed; // new
-	bool nearCar;// new
 
 	void InitSkybox();
 	void InitLights();

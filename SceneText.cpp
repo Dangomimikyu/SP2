@@ -186,6 +186,7 @@ void SceneText::Update(double dt)
 		walkingZ -= (float)(20 * dt);
 	if (Application::IsKeyPressed('B'))
 		walkingZ += (float)(20 * dt);
+
 	for (int i = 0; i < 7; i++)
 	{
 		
@@ -237,20 +238,27 @@ void SceneText::Update(double dt)
 			NPCinRange = false;
 		}
 	}
-	if (Application::IsKeyPressed('M') && ClosestNPC != -1) {
-		NPCs[ClosestNPC].activity(true);
+
+	if (Application::IsKeyPressed('M')) { // changed to interaction key
 		M_pressed = true;
 	}
 	else {
 		M_pressed = false;
 	}
 
-	// range checks for DISPLAY STANDs ===========================
-	if ((obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].translation - playerPos.translation).Length() < 15.f) {
-		nearCar = true;
+	// range checks for DISPLAY STANDs =========================== (followed by scaling of car model)
+	if ((obj_transform[ENV_CAR_DISPLAY_PLATFORM_1].translation - playerPos.translation).Length() < 7.5f) {
+		if(obj_transform[ENV_CAR].scaling.x < .3f)
+			obj_transform[ENV_CAR].scaling += Vector3(.5f * dt, .5f * dt, .5f * dt);
+		obj_transform[ENV_CAR].rotationY.angle += (float)(10 * dt);
+
+		if(M_pressed) //useless code
+			obj_transform[ENV_CAR].rotationY.angle = 0;
 	}
 	else {
-		nearCar = false;
+		if (obj_transform[ENV_CAR].scaling.x > .1f)
+			obj_transform[ENV_CAR].scaling -= Vector3(dt, dt, dt);
+
 	}
 
 	camera.Update(dt);
@@ -325,8 +333,6 @@ void SceneText::Render()
 	cubee.scaling = Vector3(2, 2, 2);
 	RenderObject(meshList[GEO_CUBE], cubee, false, true);
 
-	RenderObject(meshList[GEO_ENV_CAR], obj_transform[ENV_CAR], false, true);
-
 	//modelStack.PushMatrix();
 	////scale, translate, rotate
 	//modelStack.Translate(0, 0, 0);
@@ -349,7 +355,10 @@ void SceneText::Render()
 
 	// NPC - player interaction =======================================
 	modelStack.PushMatrix();
-	if (M_pressed) {
+	if (M_pressed && ClosestNPC != -1) {
+
+		NPCs[ClosestNPC].activity(true);
+
 		if (NPCs[ClosestNPC].get_goodReply()) {
 			modelStack.Translate(NPCs_transform[ClosestNPC].translation);
 			RenderText(meshList[GEO_TEXT], "how can i help you?", Color(0, 1, 0));
@@ -727,15 +736,9 @@ void SceneText::InitObjs()
 	obj_transform[ENV_CAR].rotationX.angle = 0;
 	obj_transform[ENV_CAR].rotationY.angle = 0;
 	obj_transform[ENV_CAR].rotationZ.angle = 0;
+	obj_transform[ENV_CAR].scaling = Vector3(.1f, .1f, .1f);
 
-	// doesnt work yet ==========
-	if (nearCar) {
-		obj_transform[ENV_CAR].scaling = Vector3(.3f, .3f, .3f);
-	}
-	else {
-		obj_transform[ENV_CAR].scaling = Vector3(.1f, .1f, .1f);
-	}
-	// end ============ 
+
 }
 
 void SceneText::RenderMesh(Mesh* mesh, bool enableLight)

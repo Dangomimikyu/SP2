@@ -10,6 +10,7 @@
 #include "CCollision.h"
 #include "CCar.h"
 #include "CRectangle.h"
+#include "SceneText.h"
 
 
 class SceneMG1 : public Scene
@@ -26,11 +27,33 @@ class SceneMG1 : public Scene
 
 		GEO_CHAR,
 		GEO_DICE,
+		GEO_RACETRACK, // new
+		GEO_FENCE_IL, //I = inner, O = outer
+		GEO_FENCE_IT, // L = left, R = right, T = top , B = bottom
+		GEO_FENCE_IR, 
+		GEO_FENCE_IB,
+		GEO_FENCE_OL,
+		GEO_FENCE_OT,
+		GEO_FENCE_OR,
+		GEO_FENCE_OB,
+		GEO_FENCE_TLD,  // D = diagonal
+		GEO_FENCE_TRD,
+		GEO_FENCE_BLD,
+		GEO_FENCE_BRD,// end of new
 		GEO_LIGHTSPHERE,
 		GEO_TEXT,
 		GEO_CAR1,
 		GEO_WHEELS1,
 		GEO_SPHERE,
+		GEO_CAR_KEN,
+		GEO_CAR_JOSQUIN,
+		GEO_WHEELS_JOSQUIN,
+		GEO_CAR_KLYDE,
+		GEO_WHEELS_KLYDE,
+		GEO_CAR_SHAHIR,
+		GEO_WHEELS_SHAHIR,
+		GEO_CAR_EMILY,
+		GEO_WHEELS_EMILY,
 		NUM_GEOMETRY,
 	};
 
@@ -76,6 +99,8 @@ private:
 	MS modelStack, viewStack, projectionStack;
 	Light light[1];
 
+	transform obj_transform[NUM_GEOMETRY]; //new
+
 	Camera2 camera;
 	CCar car1;
 	transform car1Transform;
@@ -84,6 +109,10 @@ private:
 	transform cubeTransform;
 	transform sphereTransform;
 	
+	transform skybox_transform[6]; // left = 0, right = 1, up = 2, down = 3, front = 4, back = 5
+
+	void RenderMesh(Mesh* mesh, bool enableLight);
+	void RenderObject(Mesh* mesh, transform object,bool hierarchical, bool enableLight);
 	void RenderMesh(Mesh* mesh, bool enableLight);
 	void RenderMesh(Mesh* mesh, transform object, bool enableLight);
 	void RenderObject(Mesh* mesh, transform object, bool enableLight);
