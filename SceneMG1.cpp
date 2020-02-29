@@ -1,4 +1,4 @@
-#include "SceneMG1.h"
+	#include "SceneMG1.h"
 #include "GL\glew.h"
 #include "Application.h"
 #include <Mtx44.h>
@@ -147,11 +147,9 @@ void SceneMG1::Init()
 	meshList[GEO_WHEELS1] = MeshBuilder::GenerateOBJ("wheels1", "obj//wheels.obj");
 	meshList[GEO_WHEELS1]->textureID = LoadTGA("Image//car1.tga");
 
-
 	meshList[GEO_DICE] = MeshBuilder::GenerateCuboid("cube", Color(1, 0, 0), 2, 2, 2);
 
 	meshList[GEO_SPHERE] = MeshBuilder::GenerateSphere("sphere", Color(0, 1.f, 0), 9, 36, 1.f);
-
 
 	meshList[GEO_RACETRACK] = MeshBuilder::GenerateOBJ("raceTrack", "obj//raceTrack.obj");
 	meshList[GEO_RACETRACK]->textureID = LoadTGA("Image//racetrack.tga");
@@ -431,7 +429,6 @@ void SceneMG1::Update(double dt)
 
 	for(int i =0 ; i < 2; i ++)
 	{ 
-
 		 if (object[i]->getCollide() == true )
 		{
 			/*if (Application::IsKeyPressed('G'))
@@ -529,7 +526,6 @@ void SceneMG1::Render()
 	//dice.rotateAngle = 45;
 	//dice.rotation = Vector3(1, 0, 0);
 	//dice.scaling = Vector3(5, 5, 5);
-
 	// dice end
 
 	// world text
@@ -540,6 +536,7 @@ void SceneMG1::Render()
 	modelStack.PushMatrix();
 	car1Transform.translation = Vector3(distanceX , 0, distanceZ + 2);
 	car1Transform.rotationY.angle = rotateY + 90;
+
 	RenderObject(meshList[GEO_CAR1], car1Transform, true, true);
 	RenderMesh(meshList[GEO_WHEELS1], true);
 	modelStack.PopMatrix();
@@ -550,14 +547,6 @@ void SceneMG1::Render()
 
 	modelStack.PushMatrix();
 	cubeTransform.translation = Vector3(cube->get_transformation().translation.x, 0, cube->get_transformation().translation.z);
-	RenderObject(meshList[GEO_DICE], cubeTransform, false, true);
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	sphereTransform.translation = Vector3(0.f, 0, 25.f);
-	RenderObject(meshList[GEO_SPHERE], sphereTransform, false, true);
-
-	modelStack.PushMatrix();
 	if (cube->getCollide() == false) {
 		RenderTextOnScreen(meshList[GEO_TEXT], "Collision false", Color(0, 1, 0), 2, 0, 1);
 	}

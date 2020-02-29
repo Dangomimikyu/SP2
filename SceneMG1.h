@@ -113,6 +113,9 @@ private:
 
 	void RenderMesh(Mesh* mesh, bool enableLight);
 	void RenderObject(Mesh* mesh, transform object,bool hierarchical, bool enableLight);
+	void RenderMesh(Mesh* mesh, bool enableLight);
+	void RenderMesh(Mesh* mesh, transform object, bool enableLight);
+	void RenderObject(Mesh* mesh, transform object, bool enableLight);
 	void RenderSkybox();
 	std::string print_fps();
 	float distanceX;
